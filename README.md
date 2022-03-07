@@ -17,14 +17,34 @@
  -[Binance Smart Chain NFT (BSC)](https://www.binance.com/en/nft/home)
  -[FTX NFT (Solana & Ethereum)](https://ftx.us/nfts)
 ## Where is the data? 
-Storage of large files on GitHub is generally not recommended, for the purposes of this project all data should be stored in a folder `data` in the source directory of the project. 
+Storage of large files on GitHub is generally not recommended, for the purposes of this project all data should be stored in a folder `data` in the source directory of the project. You should create this folder and store the data there yourself.
 > Later on we should determine if the data should be released outside of the project at all
 ## Analysis Methods
 > As we begin to implement these we can work on filling this out:
 ## Results
-> Won't have these untill we analyze the data
+> Won't have these untill we analyze the data.
 ## Conclusions
 > ^
+# Python version
+The repo was initialized with Python 3.9.9, any version equal or higher should be sufficient.
+# Jupyterlabs
+Jupyter seems like the most obvious choice to use when working with our data, it has good visualization tools and all of the results will be reproducible in a step by step manner for others to inspect.
+## Jupyter-lab vs Jupyter-notebook
+Jupyter-lab is intended to completely replace Jupyter-notebook at some point and has a built in debugger, so it seems like the superior choice.
 # The virtual environment
+Virtual environments are useful for python projects because they indicate to the user the minimum amount of packages needed to run the project. A pip freeze outside of the virtual environment may have installed packages that are not used in the project.
+## Creating a virtual environments
+To create a virtual environment the following command is used from the source directory of the project:
+`pip3 -m venv venv` 
+or for Windows, invoke the venv command as follows: 
+`c:\>c:\Python35\python -m venv c:\path\to\myenv`
+this will create a virtual environment in a folder `venv` in the source directory.
+## Activating the virtual environment
+Navigate into the venv folder and use `source bin/activate`, or on windows `.Scripts\bin\activate`
+## Installing required packages
 All of the packages used for this project can be loaded in using the following:
 `pip3 install -r requirements.txt`
+## Adding new packages
+When installing a new package you'd like to use, make sure to update the requirements.txt using the following command `pip3 freeze > requirements.txt` and then commit the change. If you see the requirements.txt has been updated you should install the requirements again to have the latest packages used.
+## Deactivating the virtual environment
+Use `deactivate` inside of your shell.
