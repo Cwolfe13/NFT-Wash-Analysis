@@ -35,9 +35,9 @@ Jupyter-lab is intended to completely replace Jupyter-notebook at some point and
 Virtual environments are useful for python projects because they indicate to the user the minimum amount of packages needed to run the project. A pip freeze outside of the virtual environment may have installed packages that are not used in the project.
 ## Creating a virtual environments
 To create a virtual environment the following command is used from the source directory of the project:
-`pip3 -m venv venv` 
+`python3 -m venv venv` 
 or for Windows, invoke the venv command as follows: 
-`c:\>c:\Python35\python -m venv c:\path\to\myenv`
+`c:\>c:\Python35\python -m venv c:\path\to\myenv` , make sure to name the path as appropriate and have `myenv` changed to `venv`
 this will create a virtual environment in a folder `venv` in the source directory.
 ## Activating the virtual environment
 Navigate into the venv folder and use `source bin/activate`, or on windows `.Scripts\bin\activate`
