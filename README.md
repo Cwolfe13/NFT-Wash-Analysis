@@ -8,13 +8,13 @@
  ## The Data
  The data for this project was collected by a number of students enrolled at the University of Florida using public APIs different markets provided.
  Data was collected from the following markets:
- -[OpeaSea.io](OpenSea.io)  
+ -[OpeaSea.io](OpenSea.io)  (top 42 collections)
  -[Rarible.com](Rarible.com)  
- -[Zora.co](Zora.co)  
- -[Mintable.app](Mintable.app)  
- -[Solanart.io](Solanart.io)  
- -[Solsea.io](Solsea.io)  
- -[Binance Smart Chain NFT (BSC)](https://www.binance.com/en/nft/home)  
+ -[Zora.co](Zora.co)  (02-08-2021 -> 01-13-2022)
+ -[Mintable.app](Mintable.app) (data was unable to be gathered)
+ -[Solanart.io](Solanart.io) (data was unable to be gathered)
+ -[Solsea.io](Solsea.io) (data was unable to be gathered)
+ -[Binance Smart Chain NFT (BSC)](https://www.binance.com/en/nft/home) (data)
  -[FTX NFT (Solana & Ethereum)](https://ftx.us/nfts)  
 ## Where is the data?
 Storage of large files on GitHub is generally not recommended, for the purposes of this project all data should be stored in a folder `data` in the source directory of the project. You should create this folder and store the data there yourself.
