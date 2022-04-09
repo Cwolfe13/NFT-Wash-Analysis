@@ -517,13 +517,21 @@ class collection():
         Params
         ------
         prange - the max range to display as an integer or float
+        
+        Raises
+        ------
+        TypeError - if the range provided is not an int or float.
         """
         if not isinstance(prange,int) and not isinstance(prange, float):
             raise TypeError('Range provided must be an int or a float')
+        if (prange > max(self.panda.eth_hundreths)):
+            raise ValueError(f'The range provided {prange} was greater' +
+                             f'than the max transaction size {max(self.panda.eth_hundreths)}')
         #Make the figure
         fig = plt.figure(figsize=(8,6))
         plt.style.use('seaborn')
         ax1 = fig.add_subplot()
+        
         category = 'eth_'
         if prange < 10:
             category = category + 'hundreths'
@@ -534,6 +542,8 @@ class collection():
         else:
             category = category + 'singles'
             true_range = prange + 1
+        
+        #Make the histogram for the figure
         n, bins, patches = ax1.hist(self.panda[category], align='mid', bins=101, range=(0,true_range), color='gray')
         
         counter = 0
