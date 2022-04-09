@@ -113,7 +113,11 @@ class collection():
             return ret
         
         def drop_bundle(dataframe):
-            return dataframe.iloc[:, 1:150]
+            bad_data_gather=['world of women.csv', 'wvrps.csv', 'x_rabbits.csv']
+            if self.name not in bad_data_gather:
+                return dataframe.iloc[:, 1:150]
+            else:
+                return dataframe
         
         def drop_nETH(dataframe):
             # What happens if there are no non ETH indices? 
@@ -358,6 +362,7 @@ class collection():
         
         Returns
         -------
+        plt - The pyplot to be saved somewhere
         """
         values = self.panda['usd_first_sig'].value_counts().sort_index()
         percentages = []
@@ -379,8 +384,9 @@ class collection():
         
         #Probably want to change this for the report
         plt.title(self.name)
-        
+        #plt.savefig('imgs/'+self.name+'_usd_fsd.png')
         plt.show()
+        
         
     def _make_usd_first_sig(self, usd_price):
         def first_sig_fig(number):
@@ -543,16 +549,16 @@ class collection():
         category = 'eth_'
         if prange < 10:
             category = category + 'hundreths'
-            true_range = prange + 0.01
+            #true_range = prange + 0.01
         elif prange < 100:
             category = category + 'tenths'
-            true_range = prange + 0.1
+            #true_range = prange + 0.1
         else:
             category = category + 'singles'
-            true_range = prange + 1
+            #true_range = prange + 1
         
         #Make the histogram for the figure
-        n, bins, patches = ax1.hist(self.panda[category], align='mid', bins=101, range=(0,true_range), color='gray')
+        n, bins, patches = ax1.hist(self.panda[category], align='mid', bins=100, range=(0,prange), color='gray')
         
         counter = 0
         print(f'Patches: {patches}')
@@ -560,6 +566,9 @@ class collection():
             if counter % 5 == 0:
                 patches[i].set_fc('k')
             counter = counter + 1
+        ax1.set_xlabel('Trade Size ETH/USD')
+        ax1.set_ylabel('Trade Frequency%')
+        plt.xticks(np.arange(0, prange+.01, prange/10))
         plt.show()
         
     def t_test(self, selection):
@@ -952,10 +961,21 @@ if __name__ == '__main__':
     panda prepared, and then you can call any of the functions above.
     """
     test = collection(collectionCSVs[24])
-    test.t_test()
-    test.print_t_results(100)
-    test.print_t_results(1000)
-    test.print_t_results(5000)
+    benford_standard = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
+    sorted = (test.panda['usd_first_sig'].value_counts().sort_index())
+    expected = []
+    total_obs = sum(test.panda['usd_first_sig'].value_counts())
+    #Generate expected distribution
+    for i in range(0, 9):
+        expected.append(round(total_obs*benford_standard[i]/100, 3))
+    print(expected)
+    print(sorted)
+    #p value is 15.507
+    
+    # test.t_test()
+    # test.print_t_results(100)
+    # test.print_t_results(1000)
+    # test.print_t_results(5000)
     # nan results likely due to no transactions falling within a region
     # multiplying 0 in numpy probably returns nan
     #print(test.observations)
