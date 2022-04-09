@@ -71,12 +71,23 @@ class collection():
         self.name = name
         self.cwd = os.getcwd()
         directory = self.cwd + '/data/' + self.name
-        self.panda = pd.read_csv(directory, low_memory=False)
+        #large_collections = ['cryptokitties.csv']
+        touseCols = ['payment_token_id', 
+                     'total_price', 
+                     'payment_token_decimals', 
+                     'payment_token_usd_price']
+        """if self.name in large_collections:
+            self.panda = pd.read_csv(directory, 
+                                     low_memory=False, 
+                                     usecols=touseCols,
+                                     chunksize=1000)
+        else:
+            self.panda = pd.read_csv(directory, low_memory=False, usecols=touseCols)
+        """
+        self.panda = pd.read_csv(directory, low_memory=False, usecols=touseCols)
         #Now we do the work on it
         self.panda = self.clean_panda(self.panda)
-        #print(f'Keys: {panda.keys()}')
         self.panda['adj_price'] = self.make_adjprice(self.panda)
-        #print(f'Keys: {panda.keys()}')
         self.roundness = self.roundness_check(self.panda['adj_price'])
         self.panda['eth_first_sig'] = self.make_first_sig(self.panda['adj_price'])
         single, tenths, hundreths, thousandths = self.make_eth_clusters(self.panda['adj_price'])
@@ -103,7 +114,7 @@ class collection():
         """
         def main(dataframe):
             dataframe = drop_bad_rows(dataframe)
-            dataframe = drop_bundle(dataframe)
+            #dataframe = drop_bundle(dataframe)
             dataframe = drop_nETH(dataframe)
             dataframe.reset_index(inplace=True, drop=True)
             return dataframe
@@ -113,7 +124,8 @@ class collection():
             return ret
         
         def drop_bundle(dataframe):
-            bad_data_gather=['world of women.csv', 'wvrps.csv', 'x_rabbits.csv']
+            bad_data_gather=['world of women.csv', 'wvrps.csv', 'x_rabbits.csv', 
+                             'creature_world.csv']
             if self.name not in bad_data_gather:
                 return dataframe.iloc[:, 1:150]
             else:
