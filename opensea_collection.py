@@ -7,6 +7,7 @@ from matplotlib.ticker import FormatStrFormatter
 import scipy.stats
 import powerlaw
 import math
+from math import log10
 
 collectionCSVs = [
     "0n1_force.csv",
@@ -17,7 +18,7 @@ collectionCSVs = [
     "coolmonkes.csv",
     "creature_world.csv",
     "creepz_reptile.csv",
-    "creeps.csv",
+    "creepz.csv",
     "cryptoadz.csv",
     "cryptobatz.csv",
     "cryptokitties.csv",
@@ -71,7 +72,8 @@ class collection():
         self.name = name
         self.cwd = os.getcwd()
         directory = self.cwd + '/data/' + self.name
-        self.panda = pd.read_csv(directory, low_memory=False)
+        readIn = ['total_price', 'payment_token_decimals', 'payment_token_id', 'payment_token_usd_price']
+        self.panda = pd.read_csv(directory, low_memory=False, usecols=readIn)
         #Now we do the work on it
         self.panda = self.clean_panda(self.panda)
         #print(f'Keys: {panda.keys()}')
@@ -79,6 +81,7 @@ class collection():
         #print(f'Keys: {panda.keys()}')
         self.roundness = self.roundness_check(self.panda['adj_price'])
         self.panda['eth_first_sig'] = self.make_first_sig(self.panda['adj_price'])
+        #self.panda['eth_second_sig'] = self.make_second_sig(self.panda['adj_price']) Not needed
         single, tenths, hundreths, thousandths = self.make_eth_clusters(self.panda['adj_price'])
         self.panda['eth_single'] = single
         self.panda['eth_tenths'] = tenths
@@ -103,7 +106,7 @@ class collection():
         """
         def main(dataframe):
             dataframe = drop_bad_rows(dataframe)
-            dataframe = drop_bundle(dataframe)
+            #dataframe = drop_bundle(dataframe) What was this used for? It's dropping a needed col after reading in necessary cols
             dataframe = drop_nETH(dataframe)
             dataframe.reset_index(inplace=True, drop=True)
             return dataframe
@@ -258,6 +261,63 @@ class collection():
             series.append(first_sig_fig(i))
         return series
     
+    def make_second_sig(self, adj_price):
+        def second_sig_fig(number, commFSD):
+            """
+            Returns the first significant digit of a provided number as string
+            
+            Parameters
+            ----------
+            number: The number whose first significant digit will be returned
+            
+            Raises
+            ------
+            TypeError: If the provided variable is not a number a TypeError will be raised
+            """
+            #Check that what is provided is actually a number
+            if type(number) != int and type(number) != float and isinstance(number, np.ndarray) == False:
+                raise TypeError(f"{number} is not a number, it is of type {type(number)}")
+            
+            #Turn number into string so that it's iterable
+            snumber = str(number)
+            
+            #Sentinel value to determine if we've hit the first sig dig yet.
+            for i in range(0,len(snumber)):
+                # If digit is most common FSD from collection, find SSD
+                if snumber[i] == str(commFSD):
+                    for j in range(i + 1, len(snumber)):
+                        
+                        if snumber[j].isdigit():
+                            if snumber[j] == '0':
+                                pass
+                            else:
+                                return snumber[j]
+                        else:
+                            pass
+                # Not the FSD we're looking for
+                elif snumber[i] != '0' and snumber[i] != '.':
+                    break
+                
+            # Only one sig fig, return 0, skip over it when doing analysis
+            return str(0)
+        
+        #Build the series to return with the function
+        series = []
+
+        vals = self.panda['eth_first_sig'].value_counts().sort_index()
+        maxVal = max(vals)
+        index = 0
+        commonFSD = 0
+        for val in vals:
+            if val == maxVal:
+                commonFSD = index + 1
+                break
+            index = index + 1
+    
+        for i in adj_price:
+            series.append(second_sig_fig(i, commonFSD))
+        return series
+
     def make_eth_clusters(self, adj_price):
         """
         Takes in the adj price representing the total ETH/WETH traded, which is
@@ -343,6 +403,52 @@ class collection():
         benford_standard = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
         plt.scatter(x, benford_standard, c='black')
         plt.xlabel('First Significant Digit')
+        plt.ylabel('Percentage')
+        
+        #Probably want to change this for the report
+        plt.title(self.name)
+        plt.show()
+
+    def plot_eth_ssd(self):
+        """
+        Plots the benford standard in ETH/WETH
+        I think its important that this function is also recreated using
+        USD. While benford distribution might not be followed with coin amount,
+        benford distribution may be closer in USD.
+        
+        Params
+        ------
+        
+        Returns
+        -------
+        """
+        
+
+        values = self.panda['eth_second_sig'].value_counts().sort_index()
+        percentages = []
+        zero = False
+
+        # If ssd value of 0 has been included in values drop it (not applicable to Benford Analysis)
+        if values.size == 10:
+            #zero = True
+            values = values.drop(values.index[0])
+        
+        for i in values:
+            #if not zero:
+                #Get the percentage rather than the count
+                percentages.append((i/sum(values))*100)
+            #else:
+                #zero = False
+        
+        x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        plt.style.use('seaborn')
+        plt.bar(x,percentages, width=0.75)
+        plt.xticks(x)
+        
+        #This handles overlaying the benford standard dots
+        benford_standard = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
+        plt.scatter(x, benford_standard, c='black')
+        plt.xlabel('Second Significant Digit')
         plt.ylabel('Percentage')
         
         #Probably want to change this for the report
@@ -944,6 +1050,30 @@ class collection():
             print(f't-test hypothesis at {units} is: {self.t5000null_hypothesis}'
             + f'      at significance: {self.t5000significance}'
             + f'      pval was: {self.pval5000}')
+
+    def BenfordChiTest(self):
+        """
+        Returns Chi Square value
+        A value over 15.507 has a p value of under .05, meaning
+        data does not follow Benford's Law.
+        
+        Parameters
+        ----------
+        observed: Dict with <key,val> = <digit,occurrences>
+        """
+        first_sigs = []
+        for i in self.panda['usd_first_sig'].value_counts().sort_index():
+            first_sigs.append(i)
+        expected = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
+        observed = []
+        for i in range(0,9):
+            observed.append((i/sum(first_sigs))*100)
+
+        chiSquare = 0
+        for (obs, exp) in zip(observed, expected):
+            chiSquare = chiSquare + (obs - exp)**2/exp
+        return chiSquare
+
 if __name__ == '__main__':
     """
     Heres where I've been testing all the functions that I'm creating
@@ -951,11 +1081,14 @@ if __name__ == '__main__':
     init methods will be run on instantiation which handle getting the
     panda prepared, and then you can call any of the functions above.
     """
-    test = collection(collectionCSVs[24])
-    test.t_test()
-    test.print_t_results(100)
-    test.print_t_results(1000)
-    test.print_t_results(5000)
+    test = collection("bored_ape.csv")
+    #test.plot_eth_fsd()
+    #test.plot_eth_ssd()
+    test.BenfordChiTest()
+    #test.t_test()
+    #test.print_t_results(100)
+    #test.print_t_results(1000)
+    #test.print_t_results(5000)
     # nan results likely due to no transactions falling within a region
     # multiplying 0 in numpy probably returns nan
     #print(test.observations)
