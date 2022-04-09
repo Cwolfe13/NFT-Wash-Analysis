@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
+import scipy.stats
 import powerlaw
 import math
 
@@ -78,10 +79,11 @@ class collection():
         #print(f'Keys: {panda.keys()}')
         self.roundness = self.roundness_check(self.panda['adj_price'])
         self.panda['eth_first_sig'] = self.make_first_sig(self.panda['adj_price'])
-        single, tenths, hundreths = self.make_eth_clusters(self.panda['adj_price'])
+        single, tenths, hundreths, thousandths = self.make_eth_clusters(self.panda['adj_price'])
         self.panda['eth_single'] = single
         self.panda['eth_tenths'] = tenths
         self.panda['eth_hundreths'] = hundreths
+        self.panda['eth_thousandths'] = thousandths
         self.panda['usd_price'] = self.make_usdprice(self.panda['adj_price'], self.panda['payment_token_usd_price'])
         self._make_usd_first_sig(self.panda['usd_price'])
         self._make_fusd()
@@ -260,6 +262,7 @@ class collection():
         """
         Takes in the adj price representing the total ETH/WETH traded, which is
         stored in the panda from opensea csv, returns two columns to be added by using the float round function.
+        note: Uses data generated from make_adj_price
         
         Params
         ------
@@ -287,8 +290,13 @@ class collection():
         hundreths = []
         for i in adj_price:
             hundreths.append(round(i, 2))
+            
+        #thousandths
+        thousandths = []
+        for i in adj_price:
+            thousandths.append(round(i, 3))
         
-        return single_digit, tenths, hundreths
+        return single_digit, tenths, hundreths, thousandths
     
     def make_usdprice(self, adj_price, payment_token_eth_price):
         """
@@ -554,7 +562,7 @@ class collection():
             counter = counter + 1
         plt.show()
         
-    def t_test(self):
+    def t_test(self, selection):
         """
         Creates a histogram to bin values within the observation window, 
         builds the cluster point frequency and highest frequency of a neighbor 
@@ -569,52 +577,373 @@ class collection():
         
         Params
         ------
+        selection - A string to specify what test you'd like 
+        ('all', '100', '500', '1000', '5000')
+        
+        Raises
+        ------
+        ValueError - If selection type is not 
         
         Returns
         -------
         """
-        #print(max(self.panda['adj_price']))
+        valid_selections = ['all', '100', '500', '1000', '5000']
+        if selection not in valid_selections:
+            raise ValueError(f'Selection {selection} is not a valid option'
+                             + f'(all, 100, 500, 1000, 5000)')
+        
         max_eth_traded = max(self.panda['adj_price'])
+        #Has an upper bound of 100 to limit iterations, but should provide
+        #a lengthy sample regardless
         if (max_eth_traded) > 100:
             max_eth_traded = 100
-        its_tenths = int(max_eth_traded*10)
-        #Each iteration should be 100+50 and then repeat 0.01 is the unit 
-        #Each iteration should be 500+100  0.05 is the unit.
-        #Each iteration should be at 1000+500 0.1 is the unit
-        #Each iteration should be at 5000+10 0.5 is the unit.
+        
+        #Make the plot for the histogram
         fig = plt.figure(figsize=(5,6))
         ax1 = fig.add_subplot()
         
-        lowerbound = 0.05
-        upperbound = 0.15
-        all_observations=[]
-        for i in range(0, its_tenths):
-            counts, bins, rects = ax1.hist(self.panda['eth_hundreths'], bins=10, range=(lowerbound, upperbound), align='mid')
-            #Calculate the percentage of the cluster
-            all_counts = sum(counts)
-            cluster_freq = round((counts[5]/all_counts*100), 2)
-            #Calculate the highest 
-            counts[5] = 0.0
-            #For testing purposes, also store a third number which will tell us
-            #Which number range is housing more than a cluster
-            ind_hn = counts.argmax()
-            offender = lowerbound + ind_hn
-            offender = round(offender, 2)
-            highest_neighbor = round((max(counts)/all_counts*100), 2)
-            #Build a tuple and add it to all views
-            this_observation = (cluster_freq, highest_neighbor, offender)
-            all_observations.append(this_observation)
-            #Increment the lower and upper
-            lowerbound = lowerbound + .10
-            upperbound = upperbound + .10
-            #Repeat
-        self.observations = all_observations
+        #Each iteration should be 100+50 and then repeat 0.01 is the unit 
+        def make_t_100():
+            its_thousandths = int(max_eth_traded*100)
+            lowerbound = 0.005
+            upperbound = 0.015
+            all_observations=[]
+            for i in range(0, its_thousandths):
+                # Construct histogram for the observationw window
+                counts, bins, rects = ax1.hist(self.panda['eth_thousandths'],
+                                               bins=10, 
+                                               range=(lowerbound, upperbound),
+                                               align='mid')
+                # sum taken beforehand because a count is reset to find the 2nd max
+                all_counts = sum(counts)
+                
+                #Not a valid window, get to the next iteration
+                if all_counts == 0:
+                    lowerbound = lowerbound + .010
+                    upperbound = upperbound + .010
+                    continue
+                
+                
+                #Calculate the percentage of a cluster
+                cluster_freq = round((counts[5]/all_counts*100), 2)
+                # Cluster value accounted for, reset to get 2nd max
+                counts[5] = 0.0
+                
+                #Calculate the 2nd highest index
+                index_highest_number = counts.argmax() #argmax is numpys index() function
+                #Make the offender piece of the tuple for testing and visualization
+                offender = lowerbound + index_highest_number
+                offender = round(offender, 3)
+                
+                #Get the 2nd max
+                highest_neighbor = round((max(counts)/all_counts*100), 2)
+                #Build a tuple and add it to all views
+                this_observation = (cluster_freq, highest_neighbor, offender, all_counts)
+                all_observations.append(this_observation)
+                #Increment the lower and upper
+                lowerbound = lowerbound + .010
+                upperbound = upperbound + .010
+                #Repeat
+            self.t_100_observations = all_observations
+                
+        #Each iteration should be 500+100  0.05 is the unit.
+        #Holding off on making this, just not that many thousandth transactions
+        def make_t_500():
+            its_thousandths = int((max_eth_traded*10)/2)
+            #print(f'iterations of histograms: {its_tenths}\n')
+            lowerbound = 0.040
+            upperbound = 0.060
+            all_observations=[]
+            for i in range(0, its_thousandths):
+                
+                # Construct histogram for the observation window
+                counts, bins, rects = ax1.hist(self.panda['eth_thousandths'],
+                                               bins=20,
+                                               range=(lowerbound, upperbound),
+                                               align='mid')
+                
+                # sum taken beforehand because a count is reset to find the 2nd max
+                all_counts = sum(counts)
+                # What happens if no transactions in a window?
+                # Not a valid window, get to the next iteration
+                if all_counts == 0:
+                    lowerbound = lowerbound + .050
+                    upperbound = upperbound + .050
+                    continue
+                # Calculate the percentage of the cluster
+                cluster_freq = round((counts[10]/all_counts*100), 2)
+                # This value accounted for, reset to be able to grab max
+                counts[10] = 0.0
+                
+                #Calculate the 2nd highest index
+                index_highest_number = counts.argmax() #argmax is numpys index() function
+                #Make the offender piece of the tuple for testing
+                offender = lowerbound + index_highest_number
+                offender = round(offender, 2)
+                
+                #Get the 2nd max
+                highest_neighbor = round((max(counts)/all_counts*100), 2)
+                
+                #Build a tuple and add it to all views
+                this_observation = (cluster_freq,
+                                    highest_neighbor,
+                                    offender,
+                                    all_counts)
+                all_observations.append(this_observation)
+                
+                #Increment the lower and upper
+                lowerbound = lowerbound + .050
+                upperbound = upperbound + .050
+                #Repeat
+            self.t_500_observations = all_observations
         
+        #Each iteration should be at 1000+500 0.1 is the unit
+        def make_t_1000():
+            its_tenths = int(max_eth_traded*10)
+            print(f'iterations of histograms: {its_tenths}\n')
+            lowerbound = 0.05
+            upperbound = 0.15
+            all_observations=[]
+            for i in range(0, its_tenths):
+                
+                # Construct histogram for the observation window
+                counts, bins, rects = ax1.hist(self.panda['eth_hundreths'],
+                                               bins=10,
+                                               range=(lowerbound, upperbound),
+                                               align='mid')
+                
+                # sum taken beforehand because a count is reset to find the 2nd max
+                all_counts = sum(counts)
+                # What happens if no transactions in a window?
+                # Not a valid window, get to the next iteration
+                if all_counts == 0:
+                    lowerbound = lowerbound + .10
+                    upperbound = upperbound + .10
+                    continue
+                # Calculate the percentage of the cluster
+                cluster_freq = round((counts[5]/all_counts*100), 2)
+                # This value accounted for, reset to be able to grab max
+                counts[5] = 0.0
+                
+                #Calculate the 2nd highest index
+                index_highest_number = counts.argmax() #argmax is numpys index() function
+                #Make the offender piece of the tuple for testing
+                offender = lowerbound + index_highest_number
+                offender = round(offender, 2)
+                
+                #Get the 2nd max
+                highest_neighbor = round((max(counts)/all_counts*100), 2)
+                
+                #Build a tuple and add it to all views
+                this_observation = (cluster_freq,
+                                    highest_neighbor,
+                                    offender,
+                                    all_counts)
+                all_observations.append(this_observation)
+                
+                #Increment the lower and upper
+                lowerbound = lowerbound + .10
+                upperbound = upperbound + .10
+                #Repeat
+            self.t_1000_observations = all_observations
         
+        #Each iteration should be at 5000+1000 0.5 is the unit.
+        def make_t_5000():
+            
+            its_5tenths = int((max_eth_traded*10)/5)
+            
+            #The first value we want to obeserve is 0.5
+            lowerbound = 0.40
+            upperbound = 0.60
+            
+            all_observations=[]
+            for i in range(0, its_5tenths):
+                
+                # Construct histogram for the observation window
+                counts, bins, rects = ax1.hist(self.panda['eth_hundreths'], 
+                                               bins=20,
+                                               range=(lowerbound, upperbound),
+                                               align='mid')
+                
+                # sum taken beforehand because a count is reset to find the 2nd max
+                all_counts = sum(counts)
+                # What happens if no transactions in a window?
+                # Not a valid window, get to the next iteration
+                if all_counts == 0:
+                    lowerbound = lowerbound + .50
+                    upperbound = upperbound + .50
+                    continue
+                # Calculate the percentage of the cluster
+                cluster_freq = round((counts[10]/all_counts*100), 2)
+                # This value accounted for, reset to be able to grab max
+                counts[10] = 0.0
+                
+                #Calculate the 2nd highest index
+                index_highest_number = counts.argmax() #argmax is numpys index() function
+                #Make the offender piece of the tuple for testing
+                offender = lowerbound + index_highest_number
+                offender = round(offender, 2)
+                
+                #Get the 2nd max
+                highest_neighbor = round((max(counts)/all_counts*100), 2)
+                
+                #Build a tuple and add it to all views
+                this_observation = (cluster_freq,
+                                    highest_neighbor,
+                                    offender,
+                                    all_counts)
+                all_observations.append(this_observation)
+                
+                #Increment the lower and upper
+                lowerbound = lowerbound + .50
+                upperbound = upperbound + .50
+                #Repeat
+            self.t_5000_observations = all_observations
         
-        #ax1.xaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-        #ax1.set_xticks(bins)
-        #plt.show()
+        #Get data ready
+        def student_t(units):
+            cluster_all = []
+            neighbor_all = []
+            if (units == 100):
+                for observation in self.t_100_observations:
+                    cluster_freq = observation[0]
+                    neighbor_freq = observation[1]
+                    cluster_all.append(cluster_freq)
+                    neighbor_all.append(neighbor_freq)
+                samples = pd.DataFrame({'cluster_freq':cluster_all}, dtype='float64')
+                samples['neighbor_freq'] = neighbor_all
+            elif (units == 500):
+                for observation in self.t_500_observations:
+                    cluster_freq = observation[0]
+                    neighbor_freq = observation[1]
+                    cluster_all.append(cluster_freq)
+                    neighbor_all.append(neighbor_freq)
+                samples = pd.DataFrame({'cluster_freq':cluster_all}, dtype='float64')
+                samples['neighbor_freq'] = neighbor_all
+            elif (units == 1000):
+                for observation in self.t_1000_observations:
+                    cluster_freq = observation[0]
+                    neighbor_freq = observation[1]
+                    cluster_all.append(cluster_freq)
+                    neighbor_all.append(neighbor_freq)
+                samples = pd.DataFrame({'cluster_freq':cluster_all}, dtype='float64')
+                samples['neighbor_freq'] = neighbor_all
+            elif (units == 5000):
+                for observation in self.t_5000_observations:
+                    cluster_freq = observation[0]
+                    neighbor_freq = observation[1]
+                    cluster_all.append(cluster_freq)
+                    neighbor_all.append(neighbor_freq)
+                samples = pd.DataFrame({'cluster_freq':cluster_all}, dtype='float64')
+                samples['neighbor_freq'] = neighbor_all
+            
+            #Necessary variables of cluster
+            cl_mean = samples['cluster_freq'].mean()
+            cl_std = samples['cluster_freq'].std()
+            cl_variance = cl_std**2
+            cl_obs = samples['cluster_freq'].count()
+            
+            #Necessary variables of neighbor
+            ne_mean = samples['neighbor_freq'].mean()
+            ne_std = samples['neighbor_freq'].std()
+            ne_variance = ne_std**2
+            ne_obs = samples['neighbor_freq'].count()
+            
+            #Equation
+            #print(self.t_1000_observations)
+            #print(f'cl_mean: {cl_mean}\ncl_variance: {cl_variance}\ncl_obs: {cl_obs}\n'
+            #    + f'ne_mean: {ne_mean}\nnne_variance: {ne_variance}\nne_obs: {ne_obs}')
+            tval = abs(cl_mean - ne_mean)/math.sqrt((cl_variance/cl_obs) + (ne_variance/ne_obs))
+            
+            #Null hypothesis is there is no statistical difference between samples
+            null_hypothesis = True
+            #if t val lower don't reject
+            #if t val higher than there is some statistical difference
+            
+            #(n1 - 1) + (n2 - 1) = (n1+n2)-2
+            degsfreedom = (cl_obs+ne_obs)-2
+            #pval is also known as the critical value
+            print(f'tval: {tval}\ndf:{degsfreedom}')
+            pval = scipy.stats.t.sf(abs(tval), df=degsfreedom)*2
+            if(units==100):
+                self.pval100 = pval
+            elif(units==500):
+                self.pval500 = pval
+            elif(units==1000):
+                self.pval1000 = pval
+            elif(units==5000):
+                self.pval5000 = pval
+            
+            significance = 0.0
+            #now compare the value at 1%, 5%, 10%
+            if (pval <= 0.01): #Some statistical difference at 99/100 times
+                significance = 0.01
+            elif(pval <= 0.05): #Some statistical difference 95/100 times
+                significance = 0.05
+            elif(pval <= 0.10): #Some statistical difference 90/100 times
+                significance = 0.10
+            
+            if (significance>0.0):
+                null_hypothesis = False
+            if (units == 100):
+                self.t100null_hypothesis = null_hypothesis
+                self.t100significance = significance
+            elif (units == 500):
+                self.t500null_hypothesis = null_hypothesis
+                self.t500significance = significance
+            elif (units == 1000):
+                self.t1000null_hypothesis = null_hypothesis
+                self.t1000significance = significance
+            elif (units == 5000):
+                self.t5000null_hypothesis = null_hypothesis
+                self.t5000significance = significance
+    
+        
+        #main work here
+        """
+        In the bored ape collection there was a total of 9 transactions
+        that fell into the 100 unit range, probably serves us better to
+        use the 1000 and 5000 unit range.
+        """
+        if (selection == 'all'):
+            make_t_100()
+            make_t_500()
+            make_t_1000()
+            make_t_5000()
+            student_t(100)
+            student_t(500)
+            student_t(1000)
+            student_t(5000)
+        elif (selection == '100'):
+            make_t_100()
+            student_t(100)
+        elif (selection == '500'):
+            make_t_500()
+            student_t(500)
+        elif (selection == '1000'):
+            make_t_1000()
+            student_t(1000)
+        elif (selection == '5000'):
+            make_t_100()
+            student_t(5000)
+
+    def print_t_results(self, units):
+        if (units==100):
+            print(f't-test hypothesis at {units} is: {self.t100null_hypothesis}'
+            + f'      at significance: {self.t100significance}'
+            + f'      pval was: {self.pval100}')
+        elif (units==500):
+            print(f't-test hypothesis at {units} is: {self.t500null_hypothesis}'
+            + f'      at significance: {self.t500significance}'
+            + f'      pval was: {self.pval500}')
+        elif (units==1000):
+            print(f't-test hypothesis at {units} is: {self.t1000null_hypothesis}'
+            + f'      at significance: {self.t1000significance}'
+            + f'      pval was: {self.pval1000}')
+        elif (units==5000):
+            print(f't-test hypothesis at {units} is: {self.t5000null_hypothesis}'
+            + f'      at significance: {self.t5000significance}'
+            + f'      pval was: {self.pval5000}')
 if __name__ == '__main__':
     """
     Heres where I've been testing all the functions that I'm creating
@@ -622,8 +951,12 @@ if __name__ == '__main__':
     init methods will be run on instantiation which handle getting the
     panda prepared, and then you can call any of the functions above.
     """
-    test = collection(collectionCSVs[22])
+    test = collection(collectionCSVs[24])
     test.t_test()
+    test.print_t_results(100)
+    test.print_t_results(1000)
+    test.print_t_results(5000)
     # nan results likely due to no transactions falling within a region
     # multiplying 0 in numpy probably returns nan
     #print(test.observations)
+    #print(test.panda['eth_hundreths'][test.panda.eth_hundreths==9.15])
