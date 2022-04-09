@@ -1095,13 +1095,28 @@ class collection():
         return chiSquare
 
     def buyer_seller_txns(self):
+        """
+        Loads in seller and buyer addresses from collection CSV,
+        pickle file containing transaction history of seller.
+        Finds how many sellers sent ETH to buyers, indicating possible
+        collusion toward wash trading, or that the seller created a
+        second (buyer) wallet funded by the original (seller) wallet.
+        Displays results in pie chart. 
+                
+        Raises
+        ------
+        FileNotFoundError - If pickle file or csv is not present in 
+        specified locations.
+        
+        Returns
+        -------
+        """
         # Load in pickle file containing dict of seller transactions
         cwd = os.getcwd()
         collection = self.name[:-4]
         pickleLocation = cwd + "/" + collection + ".pkl"
         if (not os.path.exists(pickleLocation)):
-            print("ERROR: " + pickleLocation + " DOES NOT EXIST")
-            return
+            raise FileNotFoundError("ERROR: " + pickleLocation + " DOES NOT EXIST")
         inFile = open(pickleLocation, "rb")
         sellerTxns = pickle.load(inFile)
         inFile.close()
@@ -1110,8 +1125,7 @@ class collection():
         readIn = ['winner_account_address', 'seller_address']
         buyersLocation = cwd + "/data/" + collection + ".csv"
         if (not os.path.exists(buyersLocation)):
-            print("ERROR: " + buyersLocation + " DOES NOT EXIST")
-            return
+            raise FileNotFoundError("ERROR: " + buyersLocation + " DOES NOT EXIST")
         nftSales = pd.read_csv(buyersLocation, usecols = readIn)
         nftSales.dropna(subset=['seller_address'], inplace=True)
 
