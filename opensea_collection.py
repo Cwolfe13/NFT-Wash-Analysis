@@ -86,7 +86,7 @@ class collection():
         else:
             self.panda = pd.read_csv(directory, low_memory=False, usecols=touseCols)
         """
-        self.panda = pd.read_csv(directory, low_memory=False, usecols=touseCols)
+        self.panda = pd.read_csv(directory, usecols=touseCols) # Removed low_memory=false, was running out of mem for large collections
         #Now we do the work on it
         self.panda = self.clean_panda(self.panda)
         self.panda['adj_price'] = self.make_adjprice(self.panda)
@@ -1164,6 +1164,49 @@ class collection():
         plt.title("Seller Transaction history for " + collection +  " (" + str(len(nftSales.index)) + " total transactions)", bbox={'facecolor':'0.8', 'pad':5})
         plt.show()
 
+def makeRoundnessVals():
+    '''
+    Finds the average roundness for all collections.
+
+    Returns
+    -------
+    avgRoundnessVals - A dictionary containing the collection name as a 
+    key and the average roundness value for its respective collection
+    '''
+    avgRoundnessVals = {}
+    for i in collectionCSVs:
+        my_obj = collection(i)
+        roundnessDict = my_obj.roundness_check(my_obj.panda['adj_price'])
+        roundnessSum = 0
+        for key in roundnessDict.keys():
+            roundnessSum += float(key) * roundnessDict[key]
+        avg = roundnessSum / sum(roundnessDict.values())
+        avgRoundnessVals[my_obj.name[:-4]] =  avg
+        print(my_obj.name[:-4] + " avg roundness calculated")
+        
+    return avgRoundnessVals
+
+def plotRoundness(avgVals):
+    '''
+    Plots average roundness for each collection. Will need to adjust
+    layout to fit all collection names
+    '''
+    def roundnessOutliers(avgVals):
+        valsSum = sum(avgVals.values())
+        avg = valsSum / sum(avgVals.values())
+        numerator = 0
+        for key in avgVals.keys():
+            numerator += (avgVals[key] - avg)**2
+        stdDev = math.sqrt(numerator / len(avgVals))
+        for key in avgVals.keys():
+            z = (avgVals[key] - avg) / stdDev
+            if z > 3:
+                print(key + " is a statistical outlier with a z-score of " + z)
+
+    plt.bar(avgVals.keys(), avgVals.values())
+    plt.show() 
+    roundnessOutliers(avgVals)
+
 if __name__ == '__main__':
     """
     Heres where I've been testing all the functions that I'm creating
@@ -1171,7 +1214,7 @@ if __name__ == '__main__':
     init methods will be run on instantiation which handle getting the
     panda prepared, and then you can call any of the functions above.
     """
-    test = collection(collectionCSVs[24])
+    '''test = collection(collectionCSVs[24])
     benford_standard = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
     sorted = (test.panda['usd_first_sig'].value_counts().sort_index())
     expected = []
@@ -1180,7 +1223,12 @@ if __name__ == '__main__':
     for i in range(0, 9):
         expected.append(round(total_obs*benford_standard[i]/100, 3))
     print(expected)
-    print(sorted)
+    print(sorted)'''
+
+    plotRoundness(makeRoundnessVals())
+    print('success')
+    #test = collection(collectionCSVs[1])
+
     #p value is 15.507
     
     # test.t_test()
