@@ -568,9 +568,8 @@ class collection():
         length = len(self.panda['adj_price'])
         #Get the top ten percent of trades
         ten_percent = math.floor(length/10)
-        top_ten_istart = length-ten_percent
-        top_ten_counts = self.panda['adj_price'][top_ten_istart:].value_counts().sort_index()
-        
+        top_ten_counts = self.panda['adj_price'].nlargest(ten_percent)
+        top_ten_counts = top_ten_counts.value_counts().sort_index()        
         #Calling the powerlaw function attempts to fit the data in top ten counts
         results = powerlaw.Fit(top_ten_counts)
         
@@ -587,11 +586,11 @@ class collection():
         #Powerlaw distributions usually conform into a straight line,
         #but the scatter plots I was testing with did not, possibly not enough data
         #collection to collection to get a good distribution.
-        """fig = plt.figure(figsize=(5, 6))
+        fig = plt.figure(figsize=(5, 6))
         ax1 = fig.add_subplot()
         plt.loglog()
         plt.scatter(top_ten_counts.index, top_ten_counts, c='r')
-        plt.show()"""
+        plt.show()
         
         #ax2 = fig.add_subplot()
         #fit = powerlaw.Fit(top_ten_counts)
