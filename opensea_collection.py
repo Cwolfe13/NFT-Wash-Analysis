@@ -1200,7 +1200,7 @@ def plotRoundness(avgVals):
         stdDev = math.sqrt(numerator / len(avgVals))
         for key in avgVals.keys():
             z = (avgVals[key] - avg) / stdDev
-            if z > 3:
+            if abs(z) > 3:
                 print(key + " is a statistical outlier with a z-score of " + z)
 
     plt.bar(avgVals.keys(), avgVals.values())
