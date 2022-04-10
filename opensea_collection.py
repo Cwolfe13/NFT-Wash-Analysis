@@ -825,7 +825,6 @@ class collection():
         #Each iteration should be at 1000+500 0.1 is the unit
         def make_t_1000():
             its_tenths = int(max_eth_traded*10)
-            print(f'iterations of histograms: {its_tenths}\n')
             lowerbound = 0.05
             upperbound = 0.15
             all_observations=[]
@@ -988,7 +987,7 @@ class collection():
             #(n1 - 1) + (n2 - 1) = (n1+n2)-2
             degsfreedom = (cl_obs+2)-2
             #pval is also known as the critical value
-            print(f'tval: {tval}\ndf:{degsfreedom}')
+            #print(f'tval: {tval}\ndf:{degsfreedom}')
             pval = scipy.stats.t.sf(abs(tval), df=degsfreedom)*2
             if(units==100):
                 self.pval100 = pval
@@ -1049,7 +1048,7 @@ class collection():
             make_t_1000()
             student_t(1000)
         elif (selection == 5000):
-            make_t_100()
+            make_t_5000()
             student_t(5000)
 
     def print_t_results(self, units):
@@ -1069,6 +1068,70 @@ class collection():
             print(f't-test hypothesis at {units} is: {self.t5000null_hypothesis}'
             + f'      at significance: {self.t5000significance}'
             + f'      pval was: {self.pval5000}')
+            
+    def percentage_true(self, units):
+        """
+        Returns the percentage of clusters observed that held
+        true to the fact that their trade count is expected to
+        be the highest in the observation window.
+        
+        params
+        ------
+        units - the base unit for which observation windows will
+        be built around as an int
+        
+        Returns
+        -------
+        float - percentage of clusters true
+        """
+        
+        valid_units = ['all', 100, 500, 1000, 5000]        
+        if units not in valid_units:
+            raise ValueError(f'Provided units is not one of {valid_units}')
+        
+        if units == 100:
+            self.t_test(100)
+            holds = 0
+            total_obs = len(self.t_100_observations)
+            for this_tuple in self.t_100_observations:
+                clusterp = this_tuple[0]
+                neighborp = this_tuple[1]
+                if clusterp > neighborp:
+                    holds = holds+1
+            return holds/total_obs
+        elif units == 500:
+            self.t_test(500)
+            holds = 0
+            total_obs = len(self.t_500_observations)
+            for this_tuple in self.t_500_observations:
+                clusterp = this_tuple[0]
+                neighborp = this_tuple[1]
+                if clusterp > neighborp:
+                    holds = holds+1
+            return holds/total_obs
+        elif units == 1000:
+            self.t_test(1000)
+            holds = 0
+            total_obs = len(self.t_1000_observations)
+            for this_tuple in self.t_1000_observations:
+                clusterp = this_tuple[0]
+                neighborp = this_tuple[1]
+                if clusterp > neighborp:
+                    holds = holds+1
+            return holds/total_obs
+        elif units == 5000:
+            self.t_test(5000)
+            holds = 0
+            total_obs = len(self.t_5000_observations)
+            for this_tuple in self.t_5000_observations:
+                clusterp = this_tuple[0]
+                neighborp = this_tuple[1]
+                if clusterp > neighborp:
+                    holds = holds+1
+            return holds/total_obs
+        elif units == 'all':
+            self.t_test('all')
+            
 
     def BenfordChiTest(self):
         """
@@ -1164,6 +1227,7 @@ class collection():
         plt.title("Seller Transaction history for " + collection +  " (" + str(len(nftSales.index)) + " total transactions)", bbox={'facecolor':'0.8', 'pad':5})
         plt.show()
 
+
 def makeRoundnessVals():
     '''
     Finds the average roundness for all collections.
@@ -1206,6 +1270,8 @@ def plotRoundness(avgVals):
     plt.bar(avgVals.keys(), avgVals.values())
     plt.show() 
     roundnessOutliers(avgVals)
+    
+
 
 if __name__ == '__main__':
     """
@@ -1225,10 +1291,10 @@ if __name__ == '__main__':
     print(expected)
     print(sorted)'''
 
-    plotRoundness(makeRoundnessVals())
-    print('success')
-    #test = collection(collectionCSVs[1])
-
+    #plotRoundness(makeRoundnessVals())
+    #print('success')
+    test = collection(collectionCSVs[4])
+    print(test.percentage_true(5000))
     #p value is 15.507
     
     # test.t_test()
