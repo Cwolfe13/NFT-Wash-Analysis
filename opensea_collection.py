@@ -712,10 +712,10 @@ class collection():
         Returns
         -------
         """
-        valid_selections = ['all', '100', '500', '1000', '5000']
+        valid_selections = ['all', 100, 500, 1000, 5000]
         if selection not in valid_selections:
             raise ValueError(f'Selection {selection} is not a valid option'
-                             + f'(all, 100, 500, 1000, 5000)')
+                             + f'(\'all\', 100, 500, 1000, 5000)')
         
         max_eth_traded = max(self.panda['adj_price'])
         #Has an upper bound of 100 to limit iterations, but should provide
@@ -724,8 +724,8 @@ class collection():
             max_eth_traded = 100
         
         #Make the plot for the histogram
-        fig = plt.figure(figsize=(5,6))
-        ax1 = fig.add_subplot()
+        #fig = plt.figure(figsize=(5,6))
+        #ax1 = fig.add_subplot()
         
         #Each iteration should be 100+50 and then repeat 0.01 is the unit 
         def make_t_100():
@@ -735,7 +735,7 @@ class collection():
             all_observations=[]
             for i in range(0, its_thousandths):
                 # Construct histogram for the observationw window
-                counts, bins, rects = ax1.hist(self.panda['eth_thousandths'],
+                counts, bins, rects = plt.hist(self.panda['eth_thousandths'],
                                                bins=10, 
                                                range=(lowerbound, upperbound),
                                                align='mid')
@@ -782,7 +782,7 @@ class collection():
             for i in range(0, its_thousandths):
                 
                 # Construct histogram for the observation window
-                counts, bins, rects = ax1.hist(self.panda['eth_thousandths'],
+                counts, bins, rects = plt.hist(self.panda['eth_thousandths'],
                                                bins=20,
                                                range=(lowerbound, upperbound),
                                                align='mid')
@@ -832,7 +832,7 @@ class collection():
             for i in range(0, its_tenths):
                 
                 # Construct histogram for the observation window
-                counts, bins, rects = ax1.hist(self.panda['eth_hundreths'],
+                counts, bins, rects = plt.hist(self.panda['eth_hundreths'],
                                                bins=10,
                                                range=(lowerbound, upperbound),
                                                align='mid')
@@ -885,7 +885,7 @@ class collection():
             for i in range(0, its_5tenths):
                 
                 # Construct histogram for the observation window
-                counts, bins, rects = ax1.hist(self.panda['eth_hundreths'], 
+                counts, bins, rects = plt.hist(self.panda['eth_hundreths'], 
                                                bins=20,
                                                range=(lowerbound, upperbound),
                                                align='mid')
@@ -986,7 +986,7 @@ class collection():
             #if t val higher than there is some statistical difference
             
             #(n1 - 1) + (n2 - 1) = (n1+n2)-2
-            degsfreedom = (cl_obs+ne_obs)-2
+            degsfreedom = (cl_obs+2)-2
             #pval is also known as the critical value
             print(f'tval: {tval}\ndf:{degsfreedom}')
             pval = scipy.stats.t.sf(abs(tval), df=degsfreedom)*2
@@ -1039,16 +1039,16 @@ class collection():
             student_t(500)
             student_t(1000)
             student_t(5000)
-        elif (selection == '100'):
+        elif (selection == 100):
             make_t_100()
             student_t(100)
-        elif (selection == '500'):
+        elif (selection == 500):
             make_t_500()
             student_t(500)
-        elif (selection == '1000'):
+        elif (selection == 1000):
             make_t_1000()
             student_t(1000)
-        elif (selection == '5000'):
+        elif (selection == 5000):
             make_t_100()
             student_t(5000)
 
@@ -1171,20 +1171,13 @@ if __name__ == '__main__':
     init methods will be run on instantiation which handle getting the
     panda prepared, and then you can call any of the functions above.
     """
-    test = collection(collectionCSVs[24])
-    benford_standard = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
-    sorted = (test.panda['usd_first_sig'].value_counts().sort_index())
-    expected = []
-    total_obs = sum(test.panda['usd_first_sig'].value_counts())
-    #Generate expected distribution
-    for i in range(0, 9):
-        expected.append(round(total_obs*benford_standard[i]/100, 3))
-    print(expected)
-    print(sorted)
-    #p value is 15.507
+    test = collection(collectionCSVs[0])
+   
+  
+   
     
-    # test.t_test()
-    # test.print_t_results(100)
+    test.t_test(100)
+    test.print_t_results(100)
     # test.print_t_results(1000)
     # test.print_t_results(5000)
     # nan results likely due to no transactions falling within a region
