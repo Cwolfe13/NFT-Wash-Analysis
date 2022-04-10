@@ -1085,7 +1085,7 @@ class collection():
             first_sigs.append(i)
         expected = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
         observed = []
-        for i in range(0,9):
+        for i in first_sigs:
             observed.append((i/sum(first_sigs))*100)
 
         chiSquare = 0
@@ -1171,13 +1171,8 @@ if __name__ == '__main__':
     init methods will be run on instantiation which handle getting the
     panda prepared, and then you can call any of the functions above.
     """
-    test = collection(collectionCSVs[0])
-   
-  
-   
-    
-    test.t_test(100)
-    test.print_t_results(100)
+    test = collection(collectionCSVs[3])
+    print(test.BenfordChiTest())
     # test.print_t_results(1000)
     # test.print_t_results(5000)
     # nan results likely due to no transactions falling within a region
