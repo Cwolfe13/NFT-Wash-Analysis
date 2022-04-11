@@ -122,6 +122,12 @@ class collection():
         self.cwd = os.getcwd()
         directory = self.cwd + '/data/' + self.name
         #large_collections = ['cryptokitties.csv']
+        use_dtypes = {'payment_token_id':'float',
+         'total_price':'float',
+          'payment_token_decimals':'float',
+           'winner_account_address':'string',
+           'payment_token_usd_price':'float',
+            'seller_address':'string'}
         touseCols = ['payment_token_id', 
                      'total_price', 
                      'payment_token_decimals', 
@@ -134,7 +140,7 @@ class collection():
         else:
             self.panda = pd.read_csv(directory, low_memory=False, usecols=touseCols)
         """
-        self.panda = pd.read_csv(directory, usecols=touseCols) # Removed low_memory=false, was running out of mem for large collections
+        self.panda = pd.read_csv(directory, usecols=touseCols, dtype=use_dtypes) # Removed low_memory=false, was running out of mem for large collections
         #Now we do the work on it
         self.panda = self.clean_panda(self.panda)
         self.panda['adj_price'] = self.make_adjprice(self.panda)
@@ -1163,7 +1169,7 @@ class collection():
     def BenfordChiTest(self):
         """
         Returns Chi Square value
-        A value over 15.507 has a p value of under .05, meaning
+        A value over 20.057 has a p value of under .01, meaning
         data does not follow Benford's Law.
         """
         first_sigs = []
@@ -1296,8 +1302,11 @@ def plotRoundness(avgVals):
             if abs(z) > 3:
                 print(key + " is a statistical outlier with a z-score of " + str(z))
 
-    plt.figure(figsize=(20, 3))
-    fig = plt.figure()
+    plt.cla()
+    plt.clf()
+    plt.close('all')
+    #plt.figure(figsize=(20, 3))
+    fig = plt.figure(figsize=(20, 3))
     plt.bar(list(range(1, len(collectionCSVs)+1)), avgVals.values(), align='edge', width = .3)
     plt.xticks(list(range(1, len(collectionCSVs)+1)))
     plt.xticks(rotation=80)
@@ -1350,8 +1359,7 @@ def plotClusterPercentages():
     plt.bar(list(range(1, len(collectionCSVs)+1)), clusterPercents.values(), align='edge', width = .3)
     plt.xticks(list(range(1, len(collectionCSVs)+1)))
     plt.xticks(rotation=45)
-    fig = plt.figure()
-    plt.suptitle('Cluster Percentages by Collection', fontsize=20)
+    fig.suptitle('Cluster Percentages by Collection', fontsize=20)
     plt.xlabel('Collection Key', fontsize=18)
     plt.ylabel('Cluster Percentage', fontsize=16)
     plt.show()
@@ -1395,9 +1403,10 @@ def plotAllBenfordChis():
     for i in collectionCSVs:
             my_obj = collection(i)
             chi = my_obj.BenfordChiTest()
-            if chi > 15.507:
-                print(i + " does not follow Benford's Law (chi square=" + str(chi))
-            print(my_obj.name[:-4] + ": " + str(chi))
+            if chi > 20.057:
+                print(i + " does not follow Benford's Law (chi square=" + str(chi) + ")")
+            else:
+                print(my_obj.name[:-4] + ": " + str(chi))
             chiSquares[my_obj.name[:-4]] = chi
 
     plt.clf()
@@ -1411,6 +1420,7 @@ def plotAllBenfordChis():
     fig.suptitle('Benford\'s Law Chi Square Values by Collection', fontsize=20)
     plt.xlabel('Collection Key', fontsize=18)
     plt.ylabel('Chi Square', fontsize=16)
+    plt.axhline(y=20.057,linewidth=1, color='red')
     plt.show()
 
     tbl = PrettyTable(['Graph Key', 'Collection'])
