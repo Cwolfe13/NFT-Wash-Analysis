@@ -31,7 +31,7 @@ collectionCSVs = [
     "doge_pound.csv",
     "doodles.csv",
     "dr_ETHvil.csv",
-    "emblem_vaul.csv",
+    "emblem_vault.csv",
     "FLUF_world_thingies.csv",
     "fomo_mofos.csv",
     "full_send.csv",
@@ -201,11 +201,11 @@ class collection():
             #If there isnt a decimal, or we didn't find a sigfig past
             return calc_ones(strnum)
         
-        counts = np.empty(0)
+        counts = []
         for adj_price in adj_prices:
             #Find the last significant digit
             place = last_sig_fig(adj_price)
-            counts = np.append(counts, place)
+            counts.append(place)
             """if (place < -4) | (place > 5) | (place == 0):
                 raise Exception(f'Sigfig was: {place} and adj_price = {adj_price}' +
                                 '. Considered outside of the realized bounds, and therefore has not been accounted for')"""
@@ -1096,6 +1096,7 @@ class collection():
                 neighborp = this_tuple[1]
                 if clusterp > neighborp:
                     holds = holds+1
+            plt.cla()
             return holds/total_obs
         elif units == 500:
             self.t_test(500)
@@ -1106,6 +1107,7 @@ class collection():
                 neighborp = this_tuple[1]
                 if clusterp > neighborp:
                     holds = holds+1
+            plt.cla()
             return holds/total_obs
         elif units == 1000:
             self.t_test(1000)
@@ -1116,6 +1118,7 @@ class collection():
                 neighborp = this_tuple[1]
                 if clusterp > neighborp:
                     holds = holds+1
+            plt.cla()
             return holds/total_obs
         elif units == 5000:
             self.t_test(5000)
@@ -1126,19 +1129,18 @@ class collection():
                 neighborp = this_tuple[1]
                 if clusterp > neighborp:
                     holds = holds+1
+            plt.cla()
             return holds/total_obs
         elif units == 'all':
             self.t_test('all')
+        
+        plt.cla()
             
     def BenfordChiTest(self):
         """
         Returns Chi Square value
         A value over 15.507 has a p value of under .05, meaning
         data does not follow Benford's Law.
-        
-        Parameters
-        ----------
-        observed: Dict with <key,val> = <digit,occurrences>
         """
         first_sigs = []
         for i in self.panda['usd_first_sig'].value_counts().sort_index():
@@ -1150,7 +1152,7 @@ class collection():
 
         chiSquare = 0
         for (obs, exp) in zip(observed, expected):
-            chiSquare = chiSquare + (obs - exp)**2/exp
+            chiSquare = chiSquare + (((obs - exp)**2)/exp)
         return chiSquare
 
     def buyer_seller_txns(self):
@@ -1266,12 +1268,16 @@ def plotRoundness(avgVals):
         for key in avgVals.keys():
             z = (avgVals[key] - avg) / stdDev
             if abs(z) > 3:
-                print(key + " is a statistical outlier with a z-score of " + z)
+                print(key + " is a statistical outlier with a z-score of " + str(z))
 
     plt.figure(figsize=(20, 3))
+    fig = plt.figure()
     plt.bar(list(range(1, len(collectionCSVs)+1)), avgVals.values(), align='edge', width = .3)
     plt.xticks(list(range(1, len(collectionCSVs)+1)))
-    plt.xticks(rotation=45)
+    plt.xticks(rotation=80)
+    fig.suptitle('Average Roundness by Collection', fontsize=20)
+    plt.xlabel('Collection Key', fontsize=16)
+    plt.ylabel('Average Roundness', fontsize=16)
     plt.show()
 
     tbl = PrettyTable(['Graph Key', 'Collection'])
@@ -1299,7 +1305,7 @@ def plotClusterPercentages():
         for key in percents.keys():
             z = (percents[key] - avg) / stdDev
             if abs(z) > 3:
-                print(key + " is a statistical outlier with a z-score of " + z)
+                print(key + " is a statistical outlier with a z-score of " + str(z))
 
     clusterPercents = {}
     for i in collectionCSVs:
@@ -1312,6 +1318,10 @@ def plotClusterPercentages():
     plt.bar(list(range(1, len(collectionCSVs)+1)), clusterPercents.values(), align='edge', width = .3)
     plt.xticks(list(range(1, len(collectionCSVs)+1)))
     plt.xticks(rotation=45)
+    fig = plt.figure()
+    plt.suptitle('Cluster Percentages by Collection', fontsize=20)
+    plt.xlabel('Collection Key', fontsize=18)
+    plt.ylabel('Cluster Percentage', fontsize=16)
     plt.show()
 
     tbl = PrettyTable(['Graph Key', 'Collection'])
@@ -1331,10 +1341,43 @@ def plotAllTxns():
         print(my_obj.name[:-4] + ": " + str(txnPctg))
         txnPercents[my_obj.name[:-4]] = txnPctg
 
-    plt.figure(figsize=(20, 3))  # width:20, height:30
+    plt.figure(figsize=(20, 3))
+    fig = plt.figure()
     plt.bar(list(range(1, len(collectionCSVs)+1)), txnPercents.values(), align='edge', width = .3)
     plt.xticks(list(range(1, len(collectionCSVs)+1)))
     plt.xticks(rotation=45)
+    fig.suptitle('Percentage of Transactions in Which Seller sent ETH to Buyer', fontsize=20)
+    plt.xlabel('Collection Key', fontsize=18)
+    plt.ylabel('Transction Percentage', fontsize=16)
+    plt.show()
+
+    tbl = PrettyTable(['Graph Key', 'Collection'])
+    count = 1
+    for i in collectionCSVs:
+        tbl.add_row([count, i])
+        count += 1
+    print(tbl)
+
+def plotAllBenfordChis():
+    chiSquares = {}
+    for i in collectionCSVs:
+            my_obj = collection(i)
+            chi = my_obj.BenfordChiTest()
+            if chi > 15.507:
+                print(i + " does not follow Benford's Law (chi square=" + str(chi))
+            print(my_obj.name[:-4] + ": " + str(chi))
+            chiSquares[my_obj.name[:-4]] = chi
+
+    plt.clf()
+    plt.cla()
+    plt.figure(figsize=(20, 3))
+    fig = plt.figure()
+    plt.bar(list(range(1, len(collectionCSVs)+1)), chiSquares.values(), align='edge', width = .3)
+    plt.xticks(list(range(1, len(collectionCSVs)+1)))
+    plt.xticks(rotation=45)
+    fig.suptitle('Benford\'s Law Chi Square Values by Collection', fontsize=20)
+    plt.xlabel('Collection Key', fontsize=18)
+    plt.ylabel('Chi Square', fontsize=16)
     plt.show()
 
     tbl = PrettyTable(['Graph Key', 'Collection'])
@@ -1382,6 +1425,7 @@ if __name__ == '__main__':
         tbl.add_row([count, i])
         count += 1
     print(tbl)'''
+    test = collection(collectionCSVs[20])
     # test.t_test()
     # test.print_t_results(100)
     # test.print_t_results(1000)
