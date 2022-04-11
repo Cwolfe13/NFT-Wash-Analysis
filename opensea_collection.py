@@ -3,12 +3,12 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.ticker import PercentFormatter
 import scipy.stats
 import powerlaw
 import math
 from math import log10
 import pickle
+from prettytable import PrettyTable
 
 collectionCSVs = [
     "0n1_force.csv",
@@ -1268,8 +1268,19 @@ def plotRoundness(avgVals):
             if abs(z) > 3:
                 print(key + " is a statistical outlier with a z-score of " + z)
 
-    plt.bar(avgVals.keys(), avgVals.values())
-    plt.show() 
+    plt.figure(figsize=(20, 3))
+    plt.bar(list(range(1, len(collectionCSVs)+1)), avgVals.values(), align='edge', width = .3)
+    plt.xticks(list(range(1, len(collectionCSVs)+1)))
+    plt.xticks(rotation=45)
+    plt.show()
+
+    tbl = PrettyTable(['Graph Key', 'Collection'])
+    count = 1
+    for i in collectionCSVs:
+        tbl.add_row([count, i])
+        count += 1
+    print(tbl)
+
     roundnessOutliers(avgVals)
 
 def plotClusterPercentages():
@@ -1297,26 +1308,41 @@ def plotClusterPercentages():
             print(my_obj.name[:-4] + ": " + str(holdPercent))
             clusterPercents[my_obj.name[:-4]] = holdPercent
 
-    plt.bar(clusterPercents.keys(), clusterPercents.values())
+    plt.figure(figsize=(20, 3))
+    plt.bar(list(range(1, len(collectionCSVs)+1)), clusterPercents.values(), align='edge', width = .3)
+    plt.xticks(list(range(1, len(collectionCSVs)+1)))
+    plt.xticks(rotation=45)
     plt.show()
+
+    tbl = PrettyTable(['Graph Key', 'Collection'])
+    count = 1
+    for i in collectionCSVs:
+        tbl.add_row([count, i])
+        count += 1
+    print(tbl)
+
     clusterOutliers(clusterPercents)
 
 def plotAllTxns():
     txnPercents = {}
     for i in collectionCSVs:
-        if i == 'cryptokitties.csv':
-            plt.bar(txnPercents.keys(), txnPercents.values())
-            plt.show()
-            return
+        my_obj = collection(i)
+        txnPctg = my_obj.buyer_seller_txns()
+        print(my_obj.name[:-4] + ": " + str(txnPctg))
+        txnPercents[my_obj.name[:-4]] = txnPctg
 
-        if not i == 'axie_infinity.csv' and not i == 'bored_ape.csv':
-            my_obj = collection(i)
-            txnPctg = my_obj.buyer_seller_txns()
-            print(my_obj.name[:-4] + ": " + str(txnPctg))
-            txnPercents[my_obj.name[:-4]] = txnPctg
-
-    plt.bar(txnPercents.keys(), txnPercents.values())
+    plt.figure(figsize=(20, 3))  # width:20, height:30
+    plt.bar(list(range(1, len(collectionCSVs)+1)), txnPercents.values(), align='edge', width = .3)
+    plt.xticks(list(range(1, len(collectionCSVs)+1)))
+    plt.xticks(rotation=45)
     plt.show()
+
+    tbl = PrettyTable(['Graph Key', 'Collection'])
+    count = 1
+    for i in collectionCSVs:
+        tbl.add_row([count, i])
+        count += 1
+    print(tbl)
 
 if __name__ == '__main__':
     """
@@ -1336,22 +1362,26 @@ if __name__ == '__main__':
     print(expected)
     print(sorted)'''
 
-    #plotRoundness(makeRoundnessVals())
-    #print('success')
-    #test = collection(collectionCSVs[5])
-    #print(test.percentage_true(100))
-    #print(test.percentage_true(500))
-    #print(test.percentage_true(1000))
-    #print(test.percentage_true(5000))
-    #plotClusterPercentages()
-    #print("here")
-    #p value is 15.507
+    
+    '''seed(69)
+    dict = {}
+    count = 0
+    for i in collectionCSVs:
+        randNum = randint(1,1000)
+        dict[i] = randNum
+        count += 1
+    plt.figure(figsize=(20, 3))
+    plt.bar(list(range(1, len(collectionCSVs)+1)), dict.values(), align='edge', width = .3)
+    plt.xticks(list(range(1, len(collectionCSVs)+1)))
+    plt.xticks(rotation=45)
+    plt.show()
 
-    #test = collection("clone_x.csv")
-    #test.buyer_seller_txns()
-    
-    plotAllTxns()
-    
+    tbl = PrettyTable(['Graph Key', 'Collection'])
+    count = 1
+    for i in collectionCSVs:
+        tbl.add_row([count, i])
+        count += 1
+    print(tbl)'''
     # test.t_test()
     # test.print_t_results(100)
     # test.print_t_results(1000)
