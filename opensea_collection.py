@@ -1169,6 +1169,7 @@ class collection():
         
         Returns
         -------
+        Percentage of trades in which the seller sent ETH to the buyer
         """
         # Load in pickle file containing dict of seller transactions
         cwd = os.getcwd()
@@ -1202,7 +1203,7 @@ class collection():
         
         # Write list of suspicious buyers/sellers to file
         # Might not be necessary?
-        outFileLoc = cwd + "/chain_analysis_results/" + collection + "_results.txt" 
+        '''outFileLoc = cwd + "/chain_analysis_results/" + collection + "_results.txt" 
         outFile = open(outFileLoc, "w+")
         for pair in buyersSellers:
             line = ' '.join(str(tmp) for tmp in pair)
@@ -1211,18 +1212,22 @@ class collection():
             print("/chain_analysis_results/" + collection + "_results.txt successfully written")
         else:
             print(collection + " sellers did not send ETH to buyers")
-        outFile.close()
+        outFile.close()'''
 
         # Make list of sellers with dupes removed, make array with number of nonoffenders & offenders
-        data = np.array([len(nftSales.index) - len(buyersSellers), len(buyersSellers)])
+        # No longer needed
+        '''data = np.array([len(nftSales.index) - len(buyersSellers), len(buyersSellers)])
         myColors = ['skyblue', 'red']
         pieLabels = ["Did not send ETH to buyer (" + str(data[0]) + ")", "Sent ETH to buyer (" + str(data[1]) + ")"]
-        myExplode = [0.2,0]
+        myExplode = [0.2,0]'''
 
         # Display pie chart of result
-        plt.pie(data, labels=pieLabels, explode=myExplode, colors=myColors)
+        # No longer needed
+        '''plt.pie(data, labels=pieLabels, explode=myExplode, colors=myColors)
         plt.title("Seller Transaction history for " + collection +  " (" + str(len(nftSales.index)) + " total transactions)", bbox={'facecolor':'0.8', 'pad':5})
-        plt.show()
+        plt.show()'''
+        percent = (len(buyersSellers) / len(nftSales['seller_address'])) * 100
+        return percent
 
 def makeRoundnessVals():
     '''
@@ -1285,24 +1290,8 @@ def plotClusterPercentages():
             if abs(z) > 3:
                 print(key + " is a statistical outlier with a z-score of " + z)
 
-
     clusterPercents = {}
     for i in collectionCSVs:
-        if i == 'cryptokitties.csv':
-            plt.bar(clusterPercents.keys(), clusterPercents.values())
-            plt.show()
-            clusterOutliers(clusterPercents)
-            #plt.bar(clusterPercents.keys(), clusterPercents.values())
-            #plt.ylim(0,1)
-            #plt.ylabel ('Percentage')
-            #plt.xlabel ('Significant number')
-            #plt.xticks(list(clusterPercents.keys()))
-            #plt.legend (bbox_to_anchor=(1, 1), loc="upper right", borderaxespad=0.)
-            #plt.show()
-            clusterOutliers(clusterPercents)
-            return
-
-        if not i == 'axie_infinity.csv' and not i == 'bored_ape.csv':
             my_obj = collection(i)
             holdPercent = my_obj.percentage_true(5000)
             print(my_obj.name[:-4] + ": " + str(holdPercent))
@@ -1312,6 +1301,22 @@ def plotClusterPercentages():
     plt.show()
     clusterOutliers(clusterPercents)
 
+def plotAllTxns():
+    txnPercents = {}
+    for i in collectionCSVs:
+        if i == 'cryptokitties.csv':
+            plt.bar(txnPercents.keys(), txnPercents.values())
+            plt.show()
+            return
+
+        if not i == 'axie_infinity.csv' and not i == 'bored_ape.csv':
+            my_obj = collection(i)
+            txnPctg = my_obj.buyer_seller_txns()
+            print(my_obj.name[:-4] + ": " + str(txnPctg))
+            txnPercents[my_obj.name[:-4]] = txnPctg
+
+    plt.bar(txnPercents.keys(), txnPercents.values())
+    plt.show()
 
 if __name__ == '__main__':
     """
@@ -1338,9 +1343,14 @@ if __name__ == '__main__':
     #print(test.percentage_true(500))
     #print(test.percentage_true(1000))
     #print(test.percentage_true(5000))
-    plotClusterPercentages()
+    #plotClusterPercentages()
     #print("here")
     #p value is 15.507
+
+    #test = collection("clone_x.csv")
+    #test.buyer_seller_txns()
+    
+    plotAllTxns()
     
     # test.t_test()
     # test.print_t_results(100)
