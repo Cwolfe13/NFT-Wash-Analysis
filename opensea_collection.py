@@ -1273,7 +1273,7 @@ def makeRoundnessVals():
             roundnessSum += float(key) * roundnessDict[key]
         avg = roundnessSum / sum(roundnessDict.values())
         avgRoundnessVals[my_obj.name[:-4]] =  avg
-        print(my_obj.name[:-4] + " avg roundness calculated")
+        print(my_obj.name[:-4] + " avg roundness calculated: " + str(avg))
         
     return avgRoundnessVals
 
@@ -1284,11 +1284,13 @@ def plotRoundness(avgVals):
     '''
     def roundnessOutliers(avgVals):
         valsSum = sum(avgVals.values())
-        avg = valsSum / sum(avgVals.values())
+        avg = valsSum / len(avgVals)
+        print("Collective average roundess: " + str(avg))
         numerator = 0
         for key in avgVals.keys():
             numerator += (avgVals[key] - avg)**2
         stdDev = math.sqrt(numerator / len(avgVals))
+        print("Standard devation: " + str(stdDev))
         for key in avgVals.keys():
             z = (avgVals[key] - avg) / stdDev
             if abs(z) > 3:
@@ -1321,11 +1323,13 @@ def plotClusterPercentages():
     '''
     def clusterOutliers(percents):
         pctSum = sum(percents.values())
-        avg = pctSum / sum(percents.values())
+        avg = pctSum / len(percents.values())
+        print("Collective average cluster percentage: " + str(avg))
         numerator = 0
         for key in percents.keys():
             numerator += (percents[key] - avg)**2
         stdDev = math.sqrt(numerator / len(percents))
+        print("Standard deviation: " + str(stdDev))
         for key in percents.keys():
             z = (percents[key] - avg) / stdDev
             if abs(z) > 3:
@@ -1338,7 +1342,11 @@ def plotClusterPercentages():
             print(my_obj.name[:-4] + ": " + str(holdPercent))
             clusterPercents[my_obj.name[:-4]] = holdPercent
 
-    plt.figure(figsize=(20, 3))
+    plt.clf()
+    plt.cla()
+    plt.close('all')
+    #plt.figure(figsize=(20, 3))
+    fig = plt.figure(figsize=(20, 3))
     plt.bar(list(range(1, len(collectionCSVs)+1)), clusterPercents.values(), align='edge', width = .3)
     plt.xticks(list(range(1, len(collectionCSVs)+1)))
     plt.xticks(rotation=45)
@@ -1394,8 +1402,9 @@ def plotAllBenfordChis():
 
     plt.clf()
     plt.cla()
-    plt.figure(figsize=(20, 3))
-    fig = plt.figure()
+    plt.close('all')
+    #plt.figure(figsize=(20, 3))
+    fig = plt.figure(figsize=(20, 3))
     plt.bar(list(range(1, len(collectionCSVs)+1)), chiSquares.values(), align='edge', width = .3)
     plt.xticks(list(range(1, len(collectionCSVs)+1)))
     plt.xticks(rotation=45)
@@ -1429,7 +1438,6 @@ if __name__ == '__main__':
     print(expected)
     print(sorted)'''
 
-    
     '''seed(69)
     dict = {}
     count = 0
