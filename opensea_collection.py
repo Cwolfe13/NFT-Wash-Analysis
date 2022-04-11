@@ -696,9 +696,6 @@ class collection():
         The student t-test is then performed at 1, 5, and 10% levels of 
         significance.
         
-        Currently working on this. Also trying to determine if using 
-        different units then presented in the paper by Dr. Li will
-        give us a better statistical analysis
         
         Params
         ------
@@ -723,9 +720,6 @@ class collection():
         if (max_eth_traded) > 100:
             max_eth_traded = 100
         
-        #Make the plot for the histogram
-        #fig = plt.figure(figsize=(5,6))
-        #ax1 = fig.add_subplot()
         
         #Each iteration should be 100+50 and then repeat 0.01 is the unit 
         def make_t_100():
@@ -769,6 +763,7 @@ class collection():
                 lowerbound = lowerbound + .010
                 upperbound = upperbound + .010
                 #Repeat
+            plt.cla()
             self.t_100_observations = all_observations
                 
         #Each iteration should be 500+100  0.05 is the unit.
@@ -820,6 +815,7 @@ class collection():
                 lowerbound = lowerbound + .050
                 upperbound = upperbound + .050
                 #Repeat
+            plt.cla()
             self.t_500_observations = all_observations
         
         #Each iteration should be at 1000+500 0.1 is the unit
@@ -869,6 +865,7 @@ class collection():
                 lowerbound = lowerbound + .10
                 upperbound = upperbound + .10
                 #Repeat
+            plt.cla()
             self.t_1000_observations = all_observations
         
         #Each iteration should be at 5000+1000 0.5 is the unit.
@@ -922,6 +919,7 @@ class collection():
                 lowerbound = lowerbound + .50
                 upperbound = upperbound + .50
                 #Repeat
+            plt.cla()
             self.t_5000_observations = all_observations
         
         #Get data ready
