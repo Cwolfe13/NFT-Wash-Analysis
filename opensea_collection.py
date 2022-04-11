@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import PercentFormatter
 import scipy.stats
 import powerlaw
 import math
@@ -734,7 +734,7 @@ class collection():
             upperbound = 0.015
             all_observations=[]
             for i in range(0, its_thousandths):
-                # Construct histogram for the observationw window
+                # Construct histogram for the observation window
                 counts, bins, rects = plt.hist(self.panda['eth_thousandths'],
                                                bins=10, 
                                                range=(lowerbound, upperbound),
@@ -1132,7 +1132,6 @@ class collection():
         elif units == 'all':
             self.t_test('all')
             
-
     def BenfordChiTest(self):
         """
         Returns Chi Square value
@@ -1227,7 +1226,6 @@ class collection():
         plt.title("Seller Transaction history for " + collection +  " (" + str(len(nftSales.index)) + " total transactions)", bbox={'facecolor':'0.8', 'pad':5})
         plt.show()
 
-
 def makeRoundnessVals():
     '''
     Finds the average roundness for all collections.
@@ -1270,7 +1268,51 @@ def plotRoundness(avgVals):
     plt.bar(avgVals.keys(), avgVals.values())
     plt.show() 
     roundnessOutliers(avgVals)
-    
+
+def plotClusterPercentages():
+    '''
+    Calls percentage_true() for every collection, adds them all to a dict
+    with the key being the collection name. Then plots collection percentages
+    and detects outliers.
+    '''
+    def clusterOutliers(percents):
+        pctSum = sum(percents.values())
+        avg = pctSum / sum(percents.values())
+        numerator = 0
+        for key in percents.keys():
+            numerator += (percents[key] - avg)**2
+        stdDev = math.sqrt(numerator / len(percents))
+        for key in percents.keys():
+            z = (percents[key] - avg) / stdDev
+            if abs(z) > 3:
+                print(key + " is a statistical outlier with a z-score of " + z)
+
+
+    clusterPercents = {}
+    for i in collectionCSVs:
+        if i == 'cryptokitties.csv':
+            plt.bar(clusterPercents.keys(), clusterPercents.values())
+            plt.show()
+            clusterOutliers(clusterPercents)
+            #plt.bar(clusterPercents.keys(), clusterPercents.values())
+            #plt.ylim(0,1)
+            #plt.ylabel ('Percentage')
+            #plt.xlabel ('Significant number')
+            #plt.xticks(list(clusterPercents.keys()))
+            #plt.legend (bbox_to_anchor=(1, 1), loc="upper right", borderaxespad=0.)
+            #plt.show()
+            clusterOutliers(clusterPercents)
+            return
+
+        if not i == 'axie_infinity.csv' and not i == 'bored_ape.csv':
+            my_obj = collection(i)
+            holdPercent = my_obj.percentage_true(5000)
+            print(my_obj.name[:-4] + ": " + str(holdPercent))
+            clusterPercents[my_obj.name[:-4]] = holdPercent
+
+    plt.bar(clusterPercents.keys(), clusterPercents.values())
+    plt.show()
+    clusterOutliers(clusterPercents)
 
 
 if __name__ == '__main__':
@@ -1293,8 +1335,13 @@ if __name__ == '__main__':
 
     #plotRoundness(makeRoundnessVals())
     #print('success')
-    test = collection(collectionCSVs[4])
-    print(test.percentage_true(5000))
+    #test = collection(collectionCSVs[5])
+    #print(test.percentage_true(100))
+    #print(test.percentage_true(500))
+    #print(test.percentage_true(1000))
+    #print(test.percentage_true(5000))
+    plotClusterPercentages()
+    #print("here")
     #p value is 15.507
     
     # test.t_test()
