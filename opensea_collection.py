@@ -9,6 +9,7 @@ import math
 from math import log10
 import pickle
 from prettytable import PrettyTable
+from collections import Counter
 
 collectionCSVs = [
     "0n1_force.csv",
@@ -31,7 +32,7 @@ collectionCSVs = [
     "doge_pound.csv",
     "doodles.csv",
     "dr_ETHvil.csv",
-    "emblem_vaul.csv",
+    "emblem_vault.csv",
     "FLUF_world_thingies.csv",
     "fomo_mofos.csv",
     "full_send.csv",
@@ -55,6 +56,53 @@ collectionCSVs = [
     "world of women.csv",
     "wvrps.csv",
     "x_rabbits.csv"
+]
+
+collectionCSVs2 = [
+    "0n1_force_strip.csv",
+    "axie_infinity_strip.csv",
+    "azuki_strip.csv",
+    "bored_ape_strip.csv",
+    "clone_x_strip.csv",
+    "coolmonkes_strip.csv",
+    "creature_world_strip.csv",
+    "creepz_reptile_strip.csv",
+    "creepz_strip.csv",
+    "cryptoadz_strip.csv",
+    "cryptobatz_strip.csv",
+    "cryptokitties_strip.csv",
+    "cryptopunks_strip.csv",
+    "cryptoskulls_strip.csv",
+    "cyberkongz_vx_strip.csv",
+    "DeadFellaz_strip.csv",
+    "decentraland_wearables_strip.csv",
+    "doge_pound_strip.csv",
+    "doodles_strip.csv",
+    "dr_ETHvil_strip.csv",
+    "emblem_vault_strip.csv",
+    "FLUF_world_thingies_strip.csv",
+    "fomo_mofos_strip.csv",
+    "full_send_strip.csv",
+    "hape_prime_strip.csv",
+    "hashmasks_strip.csv",
+    "lil_heroes_strip.csv",
+    "lostpoets_strip.csv",
+    "meebits_strip.csv",
+    "mekaverse_strip.csv",
+    "metroverse_strip.csv",
+    "mutant_ape_strip.csv",
+    "my_curio_cards_strip.csv",
+    "phantabear_strip.csv",
+    "pudgypenguins_strip.csv",
+    "punkcomics_strip.csv",
+    "rarible_strip.csv",
+    "rtfkt_strip.csv",
+    "sorare_strip.csv",
+    "superrare_strip.csv",
+    "wolf_game_strip.csv",
+    "world of women_strip.csv",
+    "wvrps_strip.csv",
+    "x_rabbits_strip.csv"
 ]
 
 class collection():
@@ -201,42 +249,18 @@ class collection():
             #If there isnt a decimal, or we didn't find a sigfig past
             return calc_ones(strnum)
         
-        counts = np.empty(0)
+        #counts = np.empty(0)
+        #Trying to improve performance
+        counts = []
         for adj_price in adj_prices:
             #Find the last significant digit
             place = last_sig_fig(adj_price)
-            counts = np.append(counts, place)
-            """if (place < -4) | (place > 5) | (place == 0):
-                raise Exception(f'Sigfig was: {place} and adj_price = {adj_price}' +
-                                '. Considered outside of the realized bounds, and therefore has not been accounted for')"""
-            """#Then increment the list
-            if place == -4:
-                thousands = thousands+1
-            elif place == -3:
-                hundreds = hundreds+1
-            elif place == -2:
-                tens = tens + 1
-            elif place == -1:
-                ones = ones + 1
-            elif place == 1:
-                tenths = tenths + 1
-            elif place == 2:
-                hundreths = hundreths + 1
-            elif place == 3:
-                thousandths = thousandths + 1
-            elif place == 4:
-                ten_thousandths = ten_thousandths + 1
-            elif place == 5:
-                hundred_thousandths = hundred_thousandths + 1
-                
-        return {'hundred_thousandths':hundred_thousandths, 'ten_thousandths':ten_thousandths, 'hundreths': hundreths, 'tenths': tenths, 
-            'ones':ones, 'tens':tens, 'hundreds':hundreds, 'thousands':thousands}"""
-        number, occurrences = np.unique(counts, return_counts=True)
-        returndict = {}
-        j = 0
-        for i in number:
-            returndict[f'{i}']=occurrences[j]
-            j = j + 1
+            #counts = np.append(counts, place)
+            counts.append(place)
+        #This counts how many times each number appear in an array.
+        #number, occurrences = np.unique(counts, return_counts=True)
+        #Get all uniques
+        returndict = Counter(counts)
         return returndict
     
     def make_first_sig(self, adj_price):
@@ -1266,7 +1290,7 @@ def plotRoundness(avgVals):
         for key in avgVals.keys():
             z = (avgVals[key] - avg) / stdDev
             if abs(z) > 3:
-                print(key + " is a statistical outlier with a z-score of " + z)
+                print(key + " is a statistical outlier with a z-score of " + str(z))
 
     plt.figure(figsize=(20, 3))
     plt.bar(list(range(1, len(collectionCSVs)+1)), avgVals.values(), align='edge', width = .3)
@@ -1382,6 +1406,8 @@ if __name__ == '__main__':
         tbl.add_row([count, i])
         count += 1
     print(tbl)'''
+    roundness = makeRoundnessVals()
+    plotRoundness(roundness)
     # test.t_test()
     # test.print_t_results(100)
     # test.print_t_results(1000)
