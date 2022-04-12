@@ -80,10 +80,10 @@ class collection():
                      'payment_token_decimals', 
                      'payment_token_usd_price']
         
-        use_dtypes = [{'payment_token_id':'float', 'total_price':'float', 
+        use_dtypes = {'payment_token_id':'float', 'total_price':'float', 
                        'payment_token_decimals':'float', 'winner_account_address':'string',
-                       'payment_token_usd_price':'float', 'seller_address':'string'}]
-        self.panda = pd.read_csv(directory, usecols=touseCols, dtypes = use_dtypes)
+                       'payment_token_usd_price':'float', 'seller_address':'string'}
+        self.panda = pd.read_csv(directory, usecols=touseCols, dtype = use_dtypes)
         
         #Now we do the work on it
         self.panda = self.clean_panda(self.panda)
@@ -1196,7 +1196,7 @@ class collection():
         # Load in pickle file containing dict of seller transactions
         cwd = os.getcwd()
         collection = self.name[:-4]
-        pickleLocation = cwd + "/" + collection + ".pkl"
+        pickleLocation = cwd + "/dicts/" + collection + ".pkl"
         if (not os.path.exists(pickleLocation)):
             raise FileNotFoundError("ERROR: " + pickleLocation + " DOES NOT EXIST")
         inFile = open(pickleLocation, "rb")
@@ -1239,7 +1239,7 @@ class collection():
         # Make list of sellers with dupes removed, make array with number of nonoffenders & offenders
         if plot:
             data = np.array([len(nftSales.index) - len(buyersSellers), len(buyersSellers)])
-            myColors = ['skyblue', 'red']
+            myColors = ['royalblue', 'red']
             pieLabels = ["Did not send ETH to buyer (" + str(data[0]) + ")", "Sent ETH to buyer (" + str(data[1]) + ")"]
             myExplode = [0.2,0]
 
