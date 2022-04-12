@@ -1289,7 +1289,7 @@ def plotAllTxns():
     plt.figure(figsize=(20, 3))
     fig = plt.figure()
     plt.bar(list(range(1, len(collectionCSVs))), txnPercents.values(), align='edge', width = .3)
-    plt.xticks(list(range(1, len(collectionCSVs)+1)))
+    plt.xticks(list(range(1, len(collectionCSVs))))
     plt.xticks(rotation=45)
     fig.suptitle('Percentage of Transactions in Which Seller sent ETH to Buyer', fontsize=20)
     plt.xlabel('Collection Key', fontsize=18)
