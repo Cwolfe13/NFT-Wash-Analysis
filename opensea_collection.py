@@ -58,52 +58,6 @@ collectionCSVs = [
     "x_rabbits.csv"
 ]
 
-collectionCSVs2 = [
-    "0n1_force_strip.csv",
-    "axie_infinity_strip.csv",
-    "azuki_strip.csv",
-    "bored_ape_strip.csv",
-    "clone_x_strip.csv",
-    "coolmonkes_strip.csv",
-    "creature_world_strip.csv",
-    "creepz_reptile_strip.csv",
-    "creepz_strip.csv",
-    "cryptoadz_strip.csv",
-    "cryptobatz_strip.csv",
-    "cryptokitties_strip.csv",
-    "cryptopunks_strip.csv",
-    "cryptoskulls_strip.csv",
-    "cyberkongz_vx_strip.csv",
-    "DeadFellaz_strip.csv",
-    "decentraland_wearables_strip.csv",
-    "doge_pound_strip.csv",
-    "doodles_strip.csv",
-    "dr_ETHvil_strip.csv",
-    "emblem_vault_strip.csv",
-    "FLUF_world_thingies_strip.csv",
-    "fomo_mofos_strip.csv",
-    "full_send_strip.csv",
-    "hape_prime_strip.csv",
-    "hashmasks_strip.csv",
-    "lil_heroes_strip.csv",
-    "lostpoets_strip.csv",
-    "meebits_strip.csv",
-    "mekaverse_strip.csv",
-    "metroverse_strip.csv",
-    "mutant_ape_strip.csv",
-    "my_curio_cards_strip.csv",
-    "phantabear_strip.csv",
-    "pudgypenguins_strip.csv",
-    "punkcomics_strip.csv",
-    "rarible_strip.csv",
-    "rtfkt_strip.csv",
-    "sorare_strip.csv",
-    "superrare_strip.csv",
-    "wolf_game_strip.csv",
-    "world of women_strip.csv",
-    "wvrps_strip.csv",
-    "x_rabbits_strip.csv"
-]
 
 class collection():
     """The collection class is meant to act as a holder, the idea is that for each of the CSVs above, we can
@@ -121,32 +75,21 @@ class collection():
         self.name = name
         self.cwd = os.getcwd()
         directory = self.cwd + '/data/' + self.name
-        #large_collections = ['cryptokitties.csv']
-        use_dtypes = {'payment_token_id':'float',
-         'total_price':'float',
-          'payment_token_decimals':'float',
-           'winner_account_address':'string',
-           'payment_token_usd_price':'float',
-            'seller_address':'string'}
         touseCols = ['payment_token_id', 
                      'total_price', 
                      'payment_token_decimals', 
                      'payment_token_usd_price']
-        """if self.name in large_collections:
-            self.panda = pd.read_csv(directory, 
-                                     low_memory=False, 
-                                     usecols=touseCols,
-                                     chunksize=1000)
-        else:
-            self.panda = pd.read_csv(directory, low_memory=False, usecols=touseCols)
-        """
-        self.panda = pd.read_csv(directory, usecols=touseCols, dtype=use_dtypes) # Removed low_memory=false, was running out of mem for large collections
+        
+        use_dtypes = [{'payment_token_id':'float', 'total_price':'float', 
+                       'payment_token_decimals':'float', 'winner_account_address':'string',
+                       'payment_token_usd_price':'float', 'seller_address':'string'}]
+        self.panda = pd.read_csv(directory, usecols=touseCols, dtypes = use_dtypes)
+        
         #Now we do the work on it
         self.panda = self.clean_panda(self.panda)
         self.panda['adj_price'] = self.make_adjprice(self.panda)
         self.roundness = self.roundness_check(self.panda['adj_price'])
         self.panda['eth_first_sig'] = self.make_first_sig(self.panda['adj_price'])
-        #self.panda['eth_second_sig'] = self.make_second_sig(self.panda['adj_price']) Not needed
         single, tenths, hundreths, thousandths = self.make_eth_clusters(self.panda['adj_price'])
         self.panda['eth_single'] = single
         self.panda['eth_tenths'] = tenths
@@ -198,11 +141,36 @@ class collection():
         return main(dataframe)
             
     def make_adjprice(self, dataframe):
+        """
+        Makes the adj_price column to append to the dataframe in init
+        
+        params
+        ------
+        dataframe - The dataframe that the method will use to calculate
+        adj_price
+        
+        returns
+        -------
+        adj_price - The float representation of the ETH price
+        """
         #Make an adj_price column to represent ETH price
         adj_price = dataframe.apply(lambda row: float(row.total_price) / (10**row.payment_token_decimals), axis = 1)
         return adj_price
     
     def roundness_check(self, adj_prices):
+        """"
+        Roundness check returns the counts of all last sig figs for a collection.
+        It uses the last_sig_fig member function do this.
+        
+        params
+        ------
+        adj_prices - The adj_price column of the dataframe you are attempt to get
+        the values for
+        
+        returns
+        -------
+        returndict - Dict with keys of unique last sig fig and values as counts
+        """
         def last_sig_fig(number):
             """
             Returns an integer indicating how many places after the decimal the last significant digit is. 1 returned is considered to be 
@@ -255,7 +223,6 @@ class collection():
             #If there isnt a decimal, or we didn't find a sigfig past
             return calc_ones(strnum)
         
-        #counts = np.empty(0)
         #Trying to improve performance
         counts = []
         for adj_price in adj_prices:
@@ -263,13 +230,23 @@ class collection():
             place = last_sig_fig(adj_price)
             #counts = np.append(counts, place)
             counts.append(place)
-        #This counts how many times each number appear in an array.
-        #number, occurrences = np.unique(counts, return_counts=True)
-        #Get all uniques
+        #Get all uniques, and their values, add to a dict
         returndict = Counter(counts)
         return returndict
     
     def make_first_sig(self, adj_price):
+        """
+        Makes the first_sig_fig series for a dataframe
+        
+        params
+        ------
+        adj_price - The adj_price series of the dataframe
+        
+        returns
+        -------
+        series - The first sig fig series for the dataframe
+        """
+        
         def first_sig_fig(number):
             """
             Returns the first significant digit of a provided number as string
@@ -304,9 +281,11 @@ class collection():
         #Build the series to return with the function
         series = []
         for i in adj_price:
+            #Call the member function and append to a series list.
             series.append(first_sig_fig(i))
         return series
     
+    #TODO: DELETE
     def make_second_sig(self, adj_price):
         def second_sig_fig(number, commFSD):
             """
@@ -380,6 +359,7 @@ class collection():
         single_digit - A series containing the ETH/WETH as a integer
         tenths - A series containing the ETH/WETH as a float and one decimal place
         hundreths - A series containing the ETH/WETH as float and two decimal places
+        thousandths - A series containing the ETH/WETH as a float and three decimal places
         """
         
         #Single round
@@ -415,7 +395,9 @@ class collection():
         -------
         """
         series = []
+        #Zip the values into a tuple
         for i, j in zip(adj_price, payment_token_eth_price):
+            #Multiply the values in the tuple and append to a list.
             series.append(i*j)
         return series
 
@@ -433,25 +415,32 @@ class collection():
         -------
         """
         
+        #Get the number of times each unique first sig fig occurs in the data
         values = self.panda['eth_first_sig'].value_counts().sort_index()
+        #Make a list to hold the percentages
         percentages = []
         
         for i in values:
             #Get the percentage rather than the count
             percentages.append((i/sum(values))*100)
         
+        #List for the xticks
         x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        #Make it look nice
         plt.style.use('seaborn')
+        #Make the bar chart
         plt.bar(x,percentages, width=0.75)
+        #Set the ticks
         plt.xticks(x)
         
         #This handles overlaying the benford standard dots
         benford_standard = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
         plt.scatter(x, benford_standard, c='black')
+        #Set the labels
         plt.xlabel('First Significant Digit')
         plt.ylabel('Percentage')
         
-        #Probably want to change this for the report
+        #Name the chart for the appendix
         plt.title(self.name)
         plt.show()
 
@@ -472,7 +461,6 @@ class collection():
 
         values = self.panda['eth_second_sig'].value_counts().sort_index()
         percentages = []
-        zero = False
 
         # If ssd value of 0 has been included in values drop it (not applicable to Benford Analysis)
         if values.size == 10:
@@ -480,19 +468,21 @@ class collection():
             values = values.drop(values.index[0])
         
         for i in values:
-            #if not zero:
                 #Get the percentage rather than the count
                 percentages.append((i/sum(values))*100)
-            #else:
-                #zero = False
-        
+            
+        #X values for chart
         x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        #Make it look nice
         plt.style.use('seaborn')
+        #Plot the bar chart
         plt.bar(x,percentages, width=0.75)
+        #Set the xticks
         plt.xticks(x)
         
         #This handles overlaying the benford standard dots
         benford_standard = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
+        #Plot the scatter plot
         plt.scatter(x, benford_standard, c='black')
         plt.xlabel('Second Significant Digit')
         plt.ylabel('Percentage')
