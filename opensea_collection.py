@@ -1195,12 +1195,12 @@ def plotRoundness(avgVals):
     def roundnessOutliers(avgVals):
         valsSum = sum(avgVals.values())
         avg = valsSum / len(avgVals)
-        print("Collective average roundess: " + str(avg))
+        print("Collective average roundness: " + str(avg))
         numerator = 0
         for key in avgVals.keys():
             numerator += (avgVals[key] - avg)**2
         stdDev = math.sqrt(numerator / len(avgVals))
-        print("Standard devation: " + str(stdDev))
+        print("Standard deviation: " + str(stdDev))
         for key in avgVals.keys():
             z = (avgVals[key] - avg) / stdDev
             if abs(z) > 3:
@@ -1288,7 +1288,7 @@ def plotAllTxns():
 
     plt.figure(figsize=(20, 3))
     fig = plt.figure()
-    plt.bar(list(range(1, len(collectionCSVs)+1)), txnPercents.values(), align='edge', width = .3)
+    plt.bar(list(range(1, len(collectionCSVs))), txnPercents.values(), align='edge', width = .3)
     plt.xticks(list(range(1, len(collectionCSVs)+1)))
     plt.xticks(rotation=45)
     fig.suptitle('Percentage of Transactions in Which Seller sent ETH to Buyer', fontsize=20)
