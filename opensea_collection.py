@@ -531,7 +531,7 @@ class collection():
         plt.ylabel('Percentage')
         
         #Probably want to change this for the report
-        plt.title(self.name)
+        plt.title(self.name[:-4])
         #plt.savefig('imgs/'+self.name+'_usd_fsd.png')
         plt.show()
         
@@ -1185,7 +1185,7 @@ class collection():
             chiSquare = chiSquare + (((obs - exp)**2)/exp)
         return chiSquare
 
-    def buyer_seller_txns(self):
+    def buyer_seller_txns(self, plot):
         """
         Loads in seller and buyer addresses from collection CSV,
         pickle file containing transaction history of seller.
@@ -1247,17 +1247,18 @@ class collection():
         outFile.close()'''
 
         # Make list of sellers with dupes removed, make array with number of nonoffenders & offenders
-        # No longer needed
-        '''data = np.array([len(nftSales.index) - len(buyersSellers), len(buyersSellers)])
-        myColors = ['skyblue', 'red']
-        pieLabels = ["Did not send ETH to buyer (" + str(data[0]) + ")", "Sent ETH to buyer (" + str(data[1]) + ")"]
-        myExplode = [0.2,0]'''
+        if plot:
+            data = np.array([len(nftSales.index) - len(buyersSellers), len(buyersSellers)])
+            myColors = ['skyblue', 'red']
+            pieLabels = ["Did not send ETH to buyer (" + str(data[0]) + ")", "Sent ETH to buyer (" + str(data[1]) + ")"]
+            myExplode = [0.2,0]
 
         # Display pie chart of result
-        # No longer needed
-        '''plt.pie(data, labels=pieLabels, explode=myExplode, colors=myColors)
-        plt.title("Seller Transaction history for " + collection +  " (" + str(len(nftSales.index)) + " total transactions)", bbox={'facecolor':'0.8', 'pad':5})
-        plt.show()'''
+        
+            plt.pie(data, labels=pieLabels, explode=myExplode, colors=myColors)
+            plt.title("Seller Transaction history for " + collection +  " (" + str(len(nftSales.index)) + " total transactions)", bbox={'facecolor':'0.8', 'pad':5})
+            plt.show()
+
         percent = (len(buyersSellers) / len(nftSales['seller_address'])) * 100
         return percent
 
@@ -1318,7 +1319,7 @@ def plotRoundness(avgVals):
     tbl = PrettyTable(['Graph Key', 'Collection'])
     count = 1
     for i in collectionCSVs:
-        tbl.add_row([count, i])
+        tbl.add_row([count, i[:-4]])
         count += 1
     print(tbl)
 
@@ -1367,7 +1368,7 @@ def plotClusterPercentages():
     tbl = PrettyTable(['Graph Key', 'Collection'])
     count = 1
     for i in collectionCSVs:
-        tbl.add_row([count, i])
+        tbl.add_row([count, i[:-4]])
         count += 1
     print(tbl)
 
@@ -1377,7 +1378,7 @@ def plotAllTxns():
     txnPercents = {}
     for i in collectionCSVs:
         my_obj = collection(i)
-        txnPctg = my_obj.buyer_seller_txns()
+        txnPctg = my_obj.buyer_seller_txns(False)
         print(my_obj.name[:-4] + ": " + str(txnPctg))
         txnPercents[my_obj.name[:-4]] = txnPctg
 
@@ -1394,7 +1395,7 @@ def plotAllTxns():
     tbl = PrettyTable(['Graph Key', 'Collection'])
     count = 1
     for i in collectionCSVs:
-        tbl.add_row([count, i])
+        tbl.add_row([count, i[:-4]])
         count += 1
     print(tbl)
 
@@ -1426,7 +1427,7 @@ def plotAllBenfordChis():
     tbl = PrettyTable(['Graph Key', 'Collection'])
     count = 1
     for i in collectionCSVs:
-        tbl.add_row([count, i])
+        tbl.add_row([count, i[:-4]])
         count += 1
     print(tbl)
 
