@@ -3,6 +3,7 @@
  ## The Data
  The data for this project was collected by a number of students enrolled at the University of Florida using public APIs different markets provided.
  The data used was the following market's [OpeaSea.io](OpenSea.io) top 43 collections :
+    
     -0n1_force
 
     -Axie_Infinity
