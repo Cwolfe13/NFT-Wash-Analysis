@@ -1286,8 +1286,10 @@ def plotAllTxns():
             print(my_obj.name[:-4] + ": " + str(txnPctg))
             txnPercents[my_obj.name[:-4]] = txnPctg
 
-    plt.figure(figsize=(20, 3))
-    fig = plt.figure()
+    plt.clf()
+    plt.cla()
+    plt.close('all')
+    fig = plt.figure(figsize=(20, 3))
     plt.bar(list(range(1, len(collectionCSVs))), txnPercents.values(), align='edge', width = .3)
     plt.xticks(list(range(1, len(collectionCSVs))))
     plt.xticks(rotation=45)
