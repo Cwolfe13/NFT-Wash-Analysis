@@ -1280,10 +1280,11 @@ def plotClusterPercentages():
 def plotAllTxns():
     txnPercents = {}
     for i in collectionCSVs:
-        my_obj = collection(i)
-        txnPctg = my_obj.buyer_seller_txns(False)
-        print(my_obj.name[:-4] + ": " + str(txnPctg))
-        txnPercents[my_obj.name[:-4]] = txnPctg
+        if not i == "sorare.csv":
+            my_obj = collection(i)
+            txnPctg = my_obj.buyer_seller_txns(False)
+            print(my_obj.name[:-4] + ": " + str(txnPctg))
+            txnPercents[my_obj.name[:-4]] = txnPctg
 
     plt.figure(figsize=(20, 3))
     fig = plt.figure()
