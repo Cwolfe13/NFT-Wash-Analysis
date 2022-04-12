@@ -83,7 +83,7 @@ class collection():
         use_dtypes = [{'payment_token_id':'float', 'total_price':'float', 
                        'payment_token_decimals':'float', 'winner_account_address':'string',
                        'payment_token_usd_price':'float', 'seller_address':'string'}]
-        self.panda = pd.read_csv(directory, usecols=touseCols, dtypes = use_dtypes)
+        self.panda = pd.read_csv(directory, usecols=touseCols, dtype = use_dtypes, low_memory=False)
         
         #Now we do the work on it
         self.panda = self.clean_panda(self.panda)
