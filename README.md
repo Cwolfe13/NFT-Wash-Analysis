@@ -2,7 +2,7 @@
  The purpose of this project is to analyze NFT trades across different markets to determine if wash trading is occuring, and then peform further analysis of those wash trades.
  ## The Data
  The data for this project was collected by a number of students enrolled at the University of Florida using public APIs different markets provided.
- The data used was the following market's [OpeaSea.io](OpenSea.io) top 43 collections :
+ The data used was the following market's [OpeaSea.io](https://www.OpenSea.io) top 43 collections :
     
     -0n1_force
 
